@@ -1,7 +1,29 @@
 # Git-Deep-Learning tool 
 
-The project contains a git command to turn the change history of git repository
-into protobuf structures for Tensorflow Fold.
+This utility project contains a ![git](https://github.com/git/git) command to
+turn the change history of Git repository into
+![Protobuf](https://github.com/google/protobuf) structures for ![Tensorflow
+Fold](https://github.com/tensorflow/fold). 
+
+If the Git diff hunks come from a source code file (determined by the file
+extension that is recognised by srcML), we turn them into ![flattened abstract
+syntax trees](https://github.com/yijunyu/fast) binary structures in Protobuf.
+
+## Installation
+
+First install the following prerequisites.
+### Dependencies (prerequisites)
+* ![git](https://github.com/git/git)
+* ![srcML](http://www.srcml.org)
+* ![protobuf](https://github.com/google/protobuf)
+* ![Tensorflow Fold](https://github.com/tensorflow/fold)
+* ![fast](https://github.com/yijunyu/fast)
+
+Then perform the following commands to build the tool:
+```
+make
+make install
+```
 
 ## Usage
 
