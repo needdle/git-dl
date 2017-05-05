@@ -5,13 +5,14 @@ turn the change history of Git repository into
 [Protobuf](https://github.com/google/protobuf) structures for [Tensorflow
 Fold](https://github.com/tensorflow/fold). 
 
-If the Git diff hunks come from a source code file (determined by the file
-extension that is recognised by srcML), we turn them into [flattened abstract
+If the Git diff hunks come from a source code file (determined by a file
+extension recognisable by srcML), we turn them into [flattened abstract
 syntax trees](https://github.com/yijunyu/fast) binary structures in Protobuf.
 
 ## Installation
 
 First install the following prerequisites.
+
 ### Dependencies (prerequisites)
 * [git](https://github.com/git/git)
 * [srcML](http://www.srcml.org)
