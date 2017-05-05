@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+usage() {
+    echo "usage: git dl log [name]"
+    echo
+}
+
+cmd_log() {
+    if [ "$#" -lt 1 ]; then
+        get_log; exit 0
+    elif [ "$#" -eq 1 ]; then
+        if [ $1 == "help" ]; then
+            usage; exit 0
+        fi
+        say_log $1; exit 0
+    fi
+    usage; exit 1
+}
+
+get_log() {
+    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd"
+}

@@ -1,0 +1,41 @@
+#!/usr/bin/env sh
+
+version() {
+    echo "dl git plugin v0.0.1"
+    echo
+}
+
+usage() {
+    echo "usage: git dl <subcommand>"
+    echo
+    echo "Available subcommands are:"
+    echo "log"
+}
+
+main() {
+    if [ "$#" -lt 1 ]; then
+        usage; exit 1
+    fi
+
+    local subcommand="$1"; shift
+
+    case $subcommand in
+        "-h"|"--help")
+            usage; exit 0
+            ;;
+        "-v"|"--version")
+            version; exit 0
+            ;;
+    esac
+
+    export WORKINGDIR=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
+    if [ ! -e "$WORKINGDIR/git-dl-$subcommand" ]; then
+        usage; exit 1
+    fi
+
+    source "$WORKINGDIR/git-dl-$subcommand"
+
+    cmd_$subcommand "$@"
+}
+
+main "$@"
