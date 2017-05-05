@@ -1,9 +1,9 @@
-= Git-Deep-Learning tool 
+# Git-Deep-Learning tool 
 
 The project contains a git command to turn the change history of git repository
 into protobuf structures for Tensorflow Fold.
 
-== Usage
+## Usage
 
 1. Display detailed log information of Git
 ```
