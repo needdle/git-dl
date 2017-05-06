@@ -54,15 +54,14 @@ void srcML(fast::Element *unit, std::string text, std::string ext) {
 	remove(buf);
 	strcat(buf, ".pb");
 	string pb_filename = buf;
-	char *argv[3];
-	argv[1] = (char*) malloc(src_filename.size());
-	argv[2] = (char*) malloc(pb_filename.size());
-	strcpy(argv[1], src_filename.c_str());
-	strcpy(argv[2], pb_filename.c_str());
+	char **argv = (char**) malloc(3*sizeof(char*));
+	argv[1] = (char*) src_filename.c_str();
+	argv[2] = (char*) pb_filename.c_str();
 	mainRoutine(3, argv);
 	remove(src_filename.c_str());
 	fstream input(pb_filename, ios::in | ios::binary);
 	unit->ParseFromIstream(&input);
+	input.close();
 	remove(pb_filename.c_str());
 }
 

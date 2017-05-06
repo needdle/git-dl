@@ -61,7 +61,7 @@ inline bool exists_test (const std::string& name) {
 
 bool check_exists(const std::string& name) {
 	if (!exists_test(name)) {
-		cerr << "Please check the input file " << name << " exists" << endl;
+		// cerr << "Please check the input file " << name << " exists" << endl;
 		return false;
 	}
 	return true;

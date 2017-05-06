@@ -50,9 +50,11 @@ src/git.proto.in: commit.proto
 src/git.proto.in: fast.proto
 src/hunk.proto.in: modline.proto
 
+CCFLAGS=
+CCFLAGS=-g
+
 gitlog: git.pb.cc src/gitlog.cc src/fast.cc
-	c++ -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
-#	c++ -g -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
+	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
 
 clean:
 	rm -rf $(target) temp.* test/temp.* *.dSYM
