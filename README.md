@@ -43,3 +43,10 @@ where `a.pb` contains the protobuf information in binary.
 ```
 cat a.pb | protoc -I. --decode=fast.Log git.proto
 ```
+
+4. Concatenate two protobuf binary files into a single one, removing the duplicates
+```
+cat t1.pb t2.pb tt.pb
+cat tt.pb | protoc -I. --decode=fast.Log git.proto
+```
+where t1.pb and t2.pb are logs, tt.pb should be the merged (unique) logs.
