@@ -1,10 +1,12 @@
 BIN_DIR   = /usr/local/bin
 LOADER    += git-dl
 LOADER    += gitlog
+LOADER    += catlog
 COMMANDS  += git-dl-log
 target += git.pb.cc
 target += git.pb.h
 target += gitlog
+target += catlog
 target += git.proto
 target += commit.proto
 target += author.proto
@@ -54,6 +56,9 @@ CCFLAGS=-g
 CCFLAGS=
 
 gitlog: git.pb.cc src/gitlog.cc src/fast.cc
+	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
+
+catlog: git.pb.cc src/catlog.cc src/fast.cc
 	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
 
 clean:
