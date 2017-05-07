@@ -1,6 +1,6 @@
 __COUNTER__
 string id = __COUNTER__;
-string text = __COUNTER__;
+bytes text = __COUNTER__;
 int32 author_id = __COUNTER__;
 string author_date = __COUNTER__;
 oneof extra {

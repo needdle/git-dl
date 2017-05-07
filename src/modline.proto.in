@@ -1,5 +1,5 @@
 __COUNTER__
-string line = __COUNTER__;
+bytes line = __COUNTER__;
 bool is_add = __COUNTER__;
 bool is_del = __COUNTER__;
 

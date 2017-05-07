@@ -50,8 +50,8 @@ src/git.proto.in: commit.proto
 src/git.proto.in: fast.proto
 src/hunk.proto.in: modline.proto
 
-CCFLAGS=
 CCFLAGS=-g
+CCFLAGS=
 
 gitlog: git.pb.cc src/gitlog.cc src/fast.cc
 	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@

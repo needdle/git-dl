@@ -57,6 +57,7 @@ void srcML(fast::Element *unit, std::string text, std::string ext) {
 	char **argv = (char**) malloc(3*sizeof(char*));
 	argv[1] = (char*) src_filename.c_str();
 	argv[2] = (char*) pb_filename.c_str();
+	// cout << argv[1] << " " << argv[2] << endl;
 	mainRoutine(3, argv);
 	remove(src_filename.c_str());
 	fstream input(pb_filename, ios::in | ios::binary);
