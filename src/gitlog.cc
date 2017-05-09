@@ -202,9 +202,9 @@ int main(int argc, char **argv) {
         while(!input.eof()) {
 		std::getline(input, line);
 		if (line == SEPARATOR) {
-			if (no == number/jobs) {
+			if (no == (number+jobs-1)/jobs) {
 				sprintf(filename, "%s-%d.pb", argv[1], job);
-				cout << "saving " << filename << " ..." << endl;
+				cout << "saving " << no << " records into " << filename << " ..." << endl;
 				fstream output(filename, ios::out | ios::trunc | ios::binary);
 				log->SerializeToOstream(&output);
 				google::protobuf::ShutdownProtobufLibrary();
@@ -394,10 +394,12 @@ int main(int argc, char **argv) {
 	}
 	remove(log_filename.c_str());
 	sprintf(filename, "%s-%d.pb", argv[1], job);
-	cout << "saving " << filename << " ..." << endl;
-	fstream output(filename, ios::out | ios::trunc | ios::binary);
-        log->SerializeToOstream(&output);
+	if (no != 0) {
+		cout << "saving " << no << " records into " << filename << " ..." << endl;
+		fstream output(filename, ios::out | ios::trunc | ios::binary);
+		log->SerializeToOstream(&output);
+		output.close();
+	}
         google::protobuf::ShutdownProtobufLibrary();
-        output.close();
 	return 0;
 }
