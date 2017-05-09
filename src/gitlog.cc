@@ -154,9 +154,7 @@ void process_hunk_text(fast::Log_Commit_Diff_Hunk *hunk, std::string text) {
 }
 
 int main(int argc, char **argv) {
-        fstream output(argv[1], ios::out | ios::trunc | ios::binary);
         GOOGLE_PROTOBUF_VERIFY_VERSION;
-        fast::Log * log = new fast::Log();
         fast::Log_Commit * current_commit = NULL;
 	std::string line;
 	std::string diff;
@@ -172,9 +170,51 @@ int main(int argc, char **argv) {
 	std::string diff_line;
 	std::string file_a;
 	std::string file_b;
+	long number = 0;
+	int jobs = 1;
+	if (argc > 2) {
+		jobs = atoi(argv[2]);
+	}
+	char buf[100];
+	strcpy(buf, "temp.XXXXXX");
+	mkstemp(buf);
+	remove(buf);
+	std::string fn = "/tmp/";
+	fn = fn + buf;
+	remove(fn.c_str());
+	strcat(buf, ".log");
+	string log_filename = buf;
+	fstream input0(log_filename.c_str(), ios::out | ios::trunc);
         while(!std::cin.eof()){
 		std::getline(std::cin, line);
 		if (line == SEPARATOR) {
+			number++;
+		}
+		input0 << line + "\n";
+	}
+	input0.close();
+	cout << "no. of records = " << number << endl;
+	fstream input(log_filename.c_str(), ios::in);
+	int job = 0;
+	char filename[100];
+        fast::Log * log = new fast::Log();
+	int no = 0;
+        while(!input.eof()) {
+		std::getline(input, line);
+		if (line == SEPARATOR) {
+			if (no == number/jobs) {
+				sprintf(filename, "%s-%d.pb", argv[1], job);
+				cout << "saving " << filename << " ..." << endl;
+				fstream output(filename, ios::out | ios::trunc | ios::binary);
+				log->SerializeToOstream(&output);
+				google::protobuf::ShutdownProtobufLibrary();
+				output.close();
+				job++;
+				log = new fast::Log();
+				current_commit = NULL;
+				no = 0;
+			}
+			no++;
 			if (current_commit != NULL) {
 				fast::Log_Commit_Diff_Hunk * hunk = NULL;
 				fast::Log_Commit_Diff * diff_record = NULL;
@@ -352,6 +392,10 @@ int main(int argc, char **argv) {
 			diff = diff + "\n" + line;
 		}
 	}
+	remove(log_filename.c_str());
+	sprintf(filename, "%s-%d.pb", argv[1], job);
+	cout << "saving " << filename << " ..." << endl;
+	fstream output(filename, ios::out | ios::trunc | ios::binary);
         log->SerializeToOstream(&output);
         google::protobuf::ShutdownProtobufLibrary();
         output.close();
