@@ -35,7 +35,7 @@ git dl log
 
 2. Turn the log information into a protobuf representation
 ```
-git dl log | gitlog a.pb
+git dl log | gitlog a 1
 ```
 where `a.pb` contains the protobuf information in binary.
 
@@ -46,7 +46,18 @@ cat a.pb | protoc -I. --decode=fast.Log git.proto
 
 4. Concatenate two protobuf binary files into a single one, removing the duplicates
 ```
-cat t1.pb t2.pb tt.pb
+catlog t1.pb t2.pb tt.pb
 cat tt.pb | protoc -I. --decode=fast.Log git.proto
 ```
 where t1.pb and t2.pb are logs, tt.pb should be the merged (unique) logs.
+
+5. Split the log equally into M / ((M+N-1)/N) jobs, where M is the number of logs, N is the number of splitted files
+```
+git dl log | gitlog t $N
+```
+where $N is the number of splitted files, in other words, the command will produce a series of files
+```
+t-0.pb, ..., t-($N-1).pb
+```
+so that merging them together using `catlog t-*.pb t0.pb` is the same as the result file `t-0.pb` of running the ```gitlog t 1``` command.
+
