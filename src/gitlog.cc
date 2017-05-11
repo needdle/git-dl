@@ -368,14 +368,14 @@ int main(int argc, char **argv) {
 				} while (linePos != std::string::npos);
 				diff = "";
 			}
-			std::getline(std::cin, commit_id);
-			std::getline(std::cin, text);
-			std::getline(std::cin, author_name);
-			std::getline(std::cin, author_email);
-			std::getline(std::cin, author_date);
-			std::getline(std::cin, commit_name);
-			std::getline(std::cin, commit_email);
-			std::getline(std::cin, commit_date);
+			std::getline(input, commit_id);
+			std::getline(input, text);
+			std::getline(input, author_name);
+			std::getline(input, author_email);
+			std::getline(input, author_date);
+			std::getline(input, commit_name);
+			std::getline(input, commit_email);
+			std::getline(input, commit_date);
 			fast::Log_Commit *commit = log->add_commit();
 			commit->set_id(commit_id);
 			commit->set_text(text);

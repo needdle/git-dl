@@ -18,16 +18,16 @@ int main(int argc, char **argv) {
 	for (int i = 0; i<log0->author_size(); i++ ){
 		authors.insert(log0->author(i).email());
 	}
-	while (argc > 3) {
+	while (argc > 2) {
 		argc --;
 		argv = argv + 1;
-		fstream input1(argv[1], ios::in | ios::binary);
+		cout << "loading " << argv[0] << " ... " << endl;
+		fstream input1(argv[0], ios::in | ios::binary);
 		fast::Log *log1 = new fast::Log();
 		log1->ParseFromIstream(&input1);
 		for (int i = 0; i<log1->commit_size(); i++ ){
 			std::string id = log1->commit(i).id(); 
 			if (ids.find(id) == ids.end()) {
-				// cout << id << endl;
 				ids.insert(id);
 				log0->add_commit()->MergeFrom(log1->commit(i));
 			}
@@ -35,13 +35,12 @@ int main(int argc, char **argv) {
 		for (int i = 0; i<log1->author_size(); i++ ){
 			std::string email = log1->author(i).email(); 
 			if (authors.find(email) == authors.end()) {
-				// cout << id << endl;
 				authors.insert(email);
 				log0->add_author()->MergeFrom(log1->author(i));
 			}
 		}
 	}
-	ofstream output(argv[2], ios::out);
+	ofstream output(argv[1], ios::out);
         log0->SerializeToOstream(&output);
         google::protobuf::ShutdownProtobufLibrary();
         output.close();
