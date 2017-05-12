@@ -20,8 +20,14 @@ cmd_pb() {
 ## here $1 is the name of the protobuf file to output
 ## $2 is the number of parallel threads
 get_pb() {
-	git dl log | gitlog -p $1 $2
-	parallel --joblog /tmp/log --progress -j$2 --plus "cat {} | gitlog {/.log/}" ::: $1-*.log
-	catlog $1-*.pb $1.pb
-	rm -f $1-*.log $1-*.pb
+	if [ "$2" -lt 2 ]; then
+		## sequential
+		git dl log | gitlog $1
+		rm -f $1.log
+	else
+		git dl log | gitlog -p $1 $2
+#		parallel --joblog /tmp/log --progress -j$2 --plus "cat {} | gitlog {/.log/}" ::: $1-*.log
+#		catlog $1-*.pb $1.pb
+#		rm -f $1-*.log $1-*.pb
+	fi
 }

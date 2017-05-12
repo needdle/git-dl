@@ -205,37 +205,31 @@ int main(int argc, char **argv) {
 	char filename[100];
         fast::Log * log = new fast::Log();
 	int no = 0;
+	fstream output;
 	if (parallel)  {
-		text = "";
 		while(!input.eof()){
 			std::getline(input, line);
 			if (line == SEPARATOR) {
 				if (no == (number+jobs-1)/jobs) {
+					cout << "saved " << no << " records into " << filename << " ..." << endl;
+					output.close();
+					no = 0;
+					job++;
+				}
+				if (no == 0) {
 					if (jobs != 1)
 						sprintf(filename, "%s-%d.log", argv[1], job);
 					else
 						sprintf(filename, "%s.log", argv[1]);
-					cout << "saving " << no << " records into " << filename << " ..." << endl;
 					fstream output(filename, ios::out | ios::trunc);
-					output << text;
-					output.close();
-					no = 0;
-					job++;
-					text = "";
 				}
 				no++;
 			}
-			text = text + line + "\n";
+			output << line << endl;
 		}
 		input0.close();
-		if (jobs != 1)
-			sprintf(filename, "%s-%d.log", argv[1], job);
-		else
-			sprintf(filename, "%s.log", argv[1]);
 		if (no != 0) {
-			cout << "saving " << no << " records into " << filename << " ..." << endl;
-			fstream output(filename, ios::out | ios::trunc);
-			output << text;
+			cout << "saved " << no << " records into " << filename << " ..." << endl;
 			output.close();
 		}
 		return 0;
