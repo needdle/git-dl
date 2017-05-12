@@ -5,7 +5,7 @@
 #include "git.pb.h"
 using namespace std;
 
-const std::string SEPARATOR = "~~~~~~~~~~~~";
+#define SEPARATOR "~~~~~~~~~~~~"
 #define DIFF_PREFIX "diff --git "
 #define INDEX_PREFIX "index "
 #define HUNK_PREFIX "@@ "
@@ -41,7 +41,7 @@ void srcML(fast::Element *unit, std::string text, std::string ext) {
 	mkstemp(buf);
 	remove(buf);
 	std::string fn = "/tmp/";
-	fn = fn + buf;
+	fn += buf;
 	remove(fn.c_str());
 	strcat(buf, ".");
 	strcat(buf, ext.c_str());
@@ -82,7 +82,7 @@ void process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::s
 		    if (prefix == "") {
 			    is_special = true;
 			    line = line.substr(negPos + 1);
-			    text_old = text_old + line + "\n";
+			    text_old += line + "\n";
 		    }
 		}
 		if (posPos != std::string::npos) {
@@ -90,13 +90,13 @@ void process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::s
 		    if (prefix == "") {
 			    is_special = true;
 			    line = line.substr(posPos + 1);
-			    text_new = text_new + line + "\n";
+			    text_new += line + "\n";
 		    }
 		}
 		if (! is_special) {
 		    line = line.substr(1);
-		    text_old = text_old + line + "\n";
-		    text_new = text_new + line + "\n";
+		    text_old += line + "\n";
+		    text_new += line + "\n";
 		}
 		text = text.substr(linePos + 1);
 	    }
@@ -190,35 +190,36 @@ int main(int argc, char **argv) {
 	remove(fn.c_str());
 	strcat(buf, ".log");
 	string log_filename = buf;
-	fstream input0(log_filename.c_str(), ios::out | ios::trunc);
+	FILE *input0 = fopen(log_filename.c_str(), "w");
         while(!std::cin.eof()){
 		std::getline(std::cin, line);
-		if (line == SEPARATOR) {
+		if (strcmp(line.c_str(), SEPARATOR)==0) {
 			number++;
 		}
-		input0 << line + "\n";
+		fprintf(input0, "%s\n", line.c_str());
 	}
-	input0.close();
+	fclose(input0);
 	cout << "no. of records = " << number << endl;
 	fstream input(log_filename.c_str(), ios::in);
-	int job = 0;
 	char filename[100];
         fast::Log * log = new fast::Log();
 	int no = 0;
-	FILE **outputs = (FILE**) malloc(jobs * sizeof(FILE*));
-	for (int job=0; job< jobs; job++) {
-		if (jobs != 1)
-			sprintf(filename, "%s-%d.log", argv[1], job);
-		else
-			sprintf(filename, "%s.log", argv[1]);
-		outputs[job] = fopen((char*) filename, "w");
-	}
-	if (parallel)  {
+	if (parallel) {
+		int job;
+		FILE **outputs = (FILE**) malloc(jobs * sizeof(FILE*));
+		for (job=0; job< jobs; job++) {
+			if (jobs != 1)
+				sprintf(filename, "%s-%d.log", argv[1], job);
+			else
+				sprintf(filename, "%s.log", argv[1]);
+			outputs[job] = fopen((char*) filename, "w");
+		}
+		job = 0;
 		while(!input.eof()){
 			std::getline(input, line);
 			if (line == SEPARATOR) {
 				if (no == (number+jobs-1)/jobs) {
-					cout << "saved " << no << " records into " << filename << " ..." << endl;
+					cout << "saved " << no << " records into " << argv[1] << "-" << job << ".log" << " ..." << endl;
 					fclose(outputs[job]);
 					job++;
 					no = 0;
@@ -227,16 +228,18 @@ int main(int argc, char **argv) {
 			}
 			fprintf(outputs[job], "%s\n", line.c_str());
 		}
-		input0.close();
 		if (no != 0) {
-			cout << "saved " << no << " records into " << filename << " ..." << endl;
+			cout << "saved " << no << " records into " << argv[1] << "-" << job << ".log" << " ..." << endl;
 			fclose(outputs[job]);
 		}
 		return 0;
 	}
+	int job = 0;
+	// int lineno = 0;
         while(!input.eof()) {
 		std::getline(input, line);
-		if (line == SEPARATOR) {
+		if (strcmp(line.c_str(), SEPARATOR)==0) {
+			// std::cout << "." << std::flush;
 			if (no == (number+jobs-1)/jobs) {
 				if (jobs != 1)
 					sprintf(filename, "%s-%d.pb", argv[1], job);
@@ -254,6 +257,7 @@ int main(int argc, char **argv) {
 			}
 			no++;
 			if (current_commit != NULL) {
+				// cout << "." << flush;
 				fast::Log_Commit_Diff_Hunk * hunk = NULL;
 				fast::Log_Commit_Diff * diff_record = NULL;
 				size_t linePos = std::string::npos;
@@ -407,6 +411,7 @@ int main(int argc, char **argv) {
 				diff = "";
 			}
 			std::getline(input, commit_id);
+			// std::cout << commit_id << endl << std::flush;
 			std::getline(input, text);
 			std::getline(input, author_name);
 			std::getline(input, author_email);
@@ -427,7 +432,13 @@ int main(int argc, char **argv) {
 			}
 			current_commit = commit;
 		} else {
-			diff = diff + "\n" + line;
+			diff += line;
+			diff += "\n";
+			/* lineno++;
+			if (lineno > 10000) {
+				cout << "." << flush;
+				lineno = 0;
+			} */
 		}
 	}
 	remove(log_filename.c_str());
