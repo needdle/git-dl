@@ -153,16 +153,16 @@ void process_hunk_text(fast::Log_Commit_Diff_Hunk *hunk, std::string text) {
 	} while (linePos != std::string::npos);
 }
 
-void commit(fast::Log_Commit * current_commit, std::string diff) {
+std::string commit(fast::Log_Commit * current_commit, std::string diff) {
 	if (diff.length() > 1000000) {
 		cout << "Ignoring the diff block because it is too big: "<< diff.length() << endl;
-		return;
+		return "";
 	}
 	std::string file_a;
 	std::string file_b;
 	std::string diff_line;
 	if (current_commit != NULL) {
-		cout << "." << flush;
+		// cout << "." << flush;
 		fast::Log_Commit_Diff_Hunk * hunk = NULL;
 		fast::Log_Commit_Diff * diff_record = NULL;
 		size_t linePos = std::string::npos;
@@ -313,14 +313,16 @@ void commit(fast::Log_Commit * current_commit, std::string diff) {
 			if (! is_special)
 				hunk_text += diff_line + "\n";
 		    }
+		    /*
 		    lineno ++;
 		    if (lineno > 100) {
 			    cout << "." << flush;
 			    lineno = 0;
 		    }
+		    */
 		} while (linePos != std::string::npos);
-		diff = "";
 	}
+	return "";
 }
 
 int main(int argc, char **argv) {
@@ -423,7 +425,7 @@ int main(int argc, char **argv) {
 				no = 0;
 			}
 			no++;
-			commit(current_commit, diff);
+			diff = commit(current_commit, diff);
 			std::getline(input, commit_id);
 			std::getline(input, text);
 			std::getline(input, author_name);
@@ -455,7 +457,7 @@ int main(int argc, char **argv) {
 	else
 		sprintf(filename, "%s.pb", argv[1]);
 	if (no != 0) {
-		commit(current_commit, diff);
+		diff = commit(current_commit, diff);
 		cout << "saving " << no << " records into " << filename << " ..." << endl;
 		fstream output(filename, ios::out | ios::trunc | ios::binary);
 		log->SerializeToOstream(&output);
