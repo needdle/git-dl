@@ -76,5 +76,6 @@ where `-p` tells the processor to split the log first into `a-*.log` then the ne
 
 The above command sequence has also been simplified to a single command below:
 ```
-git dl pb a $N
+git dl pb $file $num_threads
 ```
+where $file is the filename for the protobuf output, $num_threads is the number of threads for parallel processing.
