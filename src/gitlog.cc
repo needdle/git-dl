@@ -205,32 +205,32 @@ int main(int argc, char **argv) {
 	char filename[100];
         fast::Log * log = new fast::Log();
 	int no = 0;
-	fstream output;
+	FILE **outputs = (FILE**) malloc(jobs * sizeof(FILE*));
+	for (int job=0; job< jobs; job++) {
+		if (jobs != 1)
+			sprintf(filename, "%s-%d.log", argv[1], job);
+		else
+			sprintf(filename, "%s.log", argv[1]);
+		outputs[job] = fopen((char*) filename, "w");
+	}
 	if (parallel)  {
 		while(!input.eof()){
 			std::getline(input, line);
 			if (line == SEPARATOR) {
 				if (no == (number+jobs-1)/jobs) {
 					cout << "saved " << no << " records into " << filename << " ..." << endl;
-					output.close();
-					no = 0;
+					fclose(outputs[job]);
 					job++;
-				}
-				if (no == 0) {
-					if (jobs != 1)
-						sprintf(filename, "%s-%d.log", argv[1], job);
-					else
-						sprintf(filename, "%s.log", argv[1]);
-					fstream output(filename, ios::out | ios::trunc);
+					no = 0;
 				}
 				no++;
 			}
-			output << line << endl;
+			fprintf(outputs[job], "%s\n", line.c_str());
 		}
 		input0.close();
 		if (no != 0) {
 			cout << "saved " << no << " records into " << filename << " ..." << endl;
-			output.close();
+			fclose(outputs[job]);
 		}
 		return 0;
 	}
