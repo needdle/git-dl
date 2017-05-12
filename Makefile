@@ -3,6 +3,7 @@ LOADER    += git-dl
 LOADER    += gitlog
 LOADER    += catlog
 COMMANDS  += git-dl-log
+COMMANDS  += git-dl-pb
 target += git.pb.cc
 target += git.pb.h
 target += gitlog
@@ -53,7 +54,7 @@ src/git.proto.in: fast.proto
 src/hunk.proto.in: modline.proto
 
 CCFLAGS=-g
-CCFLAGS=
+CCFLAGS=-O3
 
 gitlog: git.pb.cc src/gitlog.cc src/fast.cc
 	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@

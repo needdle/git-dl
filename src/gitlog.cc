@@ -170,6 +170,12 @@ int main(int argc, char **argv) {
 	std::string diff_line;
 	std::string file_a;
 	std::string file_b;
+	bool parallel = false;
+	if (strcmp(argv[1], "-p") == 0) {
+		parallel = true;
+		argc-- ;
+		argv = argv + 1;
+	}
 	long number = 0;
 	int jobs = 1;
 	if (argc > 2) {
@@ -199,11 +205,49 @@ int main(int argc, char **argv) {
 	char filename[100];
         fast::Log * log = new fast::Log();
 	int no = 0;
+	if (parallel)  {
+		text = "";
+		while(!input.eof()){
+			std::getline(input, line);
+			if (line == SEPARATOR) {
+				if (no == (number+jobs-1)/jobs) {
+					if (jobs != 1)
+						sprintf(filename, "%s-%d.log", argv[1], job);
+					else
+						sprintf(filename, "%s.log", argv[1]);
+					cout << "saving " << no << " records into " << filename << " ..." << endl;
+					fstream output(filename, ios::out | ios::trunc);
+					output << text;
+					output.close();
+					no = 0;
+					job++;
+					text = "";
+				}
+				no++;
+			}
+			text = text + line + "\n";
+		}
+		input0.close();
+		if (jobs != 1)
+			sprintf(filename, "%s-%d.log", argv[1], job);
+		else
+			sprintf(filename, "%s.log", argv[1]);
+		if (no != 0) {
+			cout << "saving " << no << " records into " << filename << " ..." << endl;
+			fstream output(filename, ios::out | ios::trunc);
+			output << text;
+			output.close();
+		}
+		return 0;
+	}
         while(!input.eof()) {
 		std::getline(input, line);
 		if (line == SEPARATOR) {
 			if (no == (number+jobs-1)/jobs) {
-				sprintf(filename, "%s-%d.pb", argv[1], job);
+				if (jobs != 1)
+					sprintf(filename, "%s-%d.pb", argv[1], job);
+				else
+					sprintf(filename, "%s.pb", argv[1]);
 				cout << "saving " << no << " records into " << filename << " ..." << endl;
 				fstream output(filename, ios::out | ios::trunc | ios::binary);
 				log->SerializeToOstream(&output);
@@ -393,7 +437,10 @@ int main(int argc, char **argv) {
 		}
 	}
 	remove(log_filename.c_str());
-	sprintf(filename, "%s-%d.pb", argv[1], job);
+	if (jobs != 1)
+		sprintf(filename, "%s-%d.pb", argv[1], job);
+	else
+		sprintf(filename, "%s.pb", argv[1]);
 	if (no != 0) {
 		cout << "saving " << no << " records into " << filename << " ..." << endl;
 		fstream output(filename, ios::out | ios::trunc | ios::binary);

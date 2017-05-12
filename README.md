@@ -19,6 +19,7 @@ First install the following prerequisites.
 * [protobuf](https://github.com/google/protobuf)
 * [Tensorflow Fold](https://github.com/tensorflow/fold)
 * [fast](https://github.com/yijunyu/fast)
+* [GNU Parallel](https://www.gnu.org/software/parallel)
 
 Then perform the following commands to build the tool:
 ```
@@ -37,11 +38,11 @@ git dl log
 ```
 git dl log | gitlog a
 ```
-where `a-0.pb` contains the protobuf information in binary.
+where `a.pb` contains the protobuf information in binary.
 
 3. Show the binary protobuf in nested textual format
 ```
-cat a-0.pb | protoc -I. --decode=fast.Log git.proto
+cat a.pb | protoc -I. --decode=fast.Log git.proto
 ```
 
 4. Concatenate two protobuf binary files into a single one, removing the duplicates
@@ -59,6 +60,21 @@ where $N is the number of splitted files, in other words, the command will produ
 ```
 a-0.pb, ..., a-($N-1).pb
 ```
-so that merging them together using `catlog a-*.pb a.pb` is the same as the single result file `a-0.pb` of 
+so that merging them together using `catlog a-*.pb a.pb` is the same as the single result file `a.pb` of 
 running the previous ```gitlog a``` command.
 
+6. Parsing larger repositories it can take substantial amount of time. 
+To speed it up, you can use [GNU Parallel](https://www.gnu.org/software/parallel) to run the process by the following commands:
+
+```
+git dl log | gitlog -p a $N
+parallel --plus "cat {} | gitlog {/.log/}" ::: a-*.log
+catlog a-*.pb a.pb
+rm -f a-*.log a-*.pb
+```
+where `-p` tells the processor to split the log first into `a-*.log` then the next command produces `a-*.pb` in parallel.
+
+The above command sequence has also been simplified to a single command below:
+```
+git dl pb a $N
+```
