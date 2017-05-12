@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+usage() {
+    echo "usage: git dl pb num_threads"
+    echo
+}
+
+cmd_pb() {
+    if [ "$#" -lt 3 ]; then
+        get_pb $1 $2; exit 0
+    elif [ "$#" -eq 1 ]; then
+        if [ $1 == "help" ]; then
+            usage; exit 0
+        fi
+    fi
+    usage; exit 1
+}
+
+## generating the protobuf representation in parallel
+## here $1 is the name of the protobuf file to output
+## $2 is the number of parallel threads
+get_pb() {
+	git dl log | gitlog -p $1 $2
+	parallel --joblog /tmp/log --progress -j$2 --plus "cat {} | gitlog {/.log/}" ::: $1-*.log
+	catlog $1-*.pb $1.pb
+	rm -f $1-*.log $1-*.pb
+}
