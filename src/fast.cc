@@ -335,7 +335,7 @@ fast::Element* savePBfromXML(xml_node<> *node)
 				if (attr->name() == string("type")) {
 					fast::Element_Literal_LiteralType type;
 					fast::Element_Literal_LiteralType_Parse(attr->name(), &type);
-					literal->set_type(type);
+					// literal->set_type(type);
 				}
 			}
 		}

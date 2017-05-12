@@ -104,10 +104,14 @@ void process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::s
 	if (text_old != "") {
 		fast::Element *unit = hunk->add_element();
 		srcML(unit, text_old, ext);
+		// ignore the filename field
+		unit->mutable_unit()->set_filename("");
 	}
 	if (text_new != "") {
 		fast::Element *unit = hunk->add_element();
 		srcML(unit, text_new, ext);
+		// ignore the filename field
+		unit->mutable_unit()->set_filename("");
 	}
 }
 
@@ -153,10 +157,11 @@ void process_hunk_text(fast::Log_Commit_Diff_Hunk *hunk, std::string text) {
 	} while (linePos != std::string::npos);
 }
 
-std::string commit(fast::Log_Commit * current_commit, std::string diff) {
+void commit(fast::Log_Commit * current_commit, std::string &diff) {
 	if (diff.length() > 1000000) {
 		cout << "Ignoring the diff block because it is too big: "<< diff.length() << endl;
-		return "";
+		diff = "";
+		return;
 	}
 	std::string file_a;
 	std::string file_b;
@@ -321,8 +326,8 @@ std::string commit(fast::Log_Commit * current_commit, std::string diff) {
 		    }
 		    */
 		} while (linePos != std::string::npos);
+		diff = "";
 	}
-	return "";
 }
 
 int main(int argc, char **argv) {
@@ -401,6 +406,7 @@ int main(int argc, char **argv) {
 			cout << "saved " << no << " records into " << argv[1] << "-" << job << ".log" << " ..." << endl;
 			fclose(outputs[job]);
 		}
+		remove(log_filename.c_str());
 		return 0;
 	}
 	int job = 0;
@@ -417,7 +423,6 @@ int main(int argc, char **argv) {
 				cout << "saving " << no << " records into " << filename << " ..." << endl;
 				fstream output(filename, ios::out | ios::trunc | ios::binary);
 				log->SerializeToOstream(&output);
-				google::protobuf::ShutdownProtobufLibrary();
 				output.close();
 				job++;
 				log = new fast::Log();
@@ -425,7 +430,7 @@ int main(int argc, char **argv) {
 				no = 0;
 			}
 			no++;
-			diff = commit(current_commit, diff);
+			commit(current_commit, diff);
 			std::getline(input, commit_id);
 			std::getline(input, text);
 			std::getline(input, author_name);
@@ -457,7 +462,7 @@ int main(int argc, char **argv) {
 	else
 		sprintf(filename, "%s.pb", argv[1]);
 	if (no != 0) {
-		diff = commit(current_commit, diff);
+		commit(current_commit, diff);
 		cout << "saving " << no << " records into " << filename << " ..." << endl;
 		fstream output(filename, ios::out | ios::trunc | ios::binary);
 		log->SerializeToOstream(&output);
