@@ -330,6 +330,19 @@ void commit(fast::Log_Commit * current_commit, std::string &diff) {
 	}
 }
 
+FILE *open_log_file(int jobs, int job, char *basename) {
+	char filename[100];
+	if (jobs != 1)
+		sprintf(filename, "%s-%d.log", basename, job);
+	else
+		sprintf(filename, "%s.log", basename);
+	FILE *file = fopen((char*) filename, "w");
+	if (file == NULL) {
+		cerr << "cannot allocate a file handle " << job << endl;
+	}
+	return file;
+}
+
 int main(int argc, char **argv) {
         GOOGLE_PROTOBUF_VERIFY_VERSION;
         fast::Log_Commit * current_commit = NULL;
@@ -376,35 +389,33 @@ int main(int argc, char **argv) {
 	cout << "no. of records = " << number << endl;
 	fstream input(log_filename.c_str(), ios::in);
 	char filename[100];
+	FILE *current_log_file = NULL;
         fast::Log * log = new fast::Log();
 	int no = 0;
 	if (parallel) {
-		int job;
-		FILE **outputs = (FILE**) malloc(jobs * sizeof(FILE*));
-		for (job=0; job< jobs; job++) {
-			if (jobs != 1)
-				sprintf(filename, "%s-%d.log", argv[1], job);
-			else
-				sprintf(filename, "%s.log", argv[1]);
-			outputs[job] = fopen((char*) filename, "w");
-		}
-		job = 0;
+		int job = 0;
 		while(!input.eof()){
 			std::getline(input, line);
 			if (line == SEPARATOR) {
 				if (no == (number+jobs-1)/jobs) {
 					cout << "saved " << no << " records into " << argv[1] << "-" << job << ".log" << " ..." << endl;
-					fclose(outputs[job]);
+					if (current_log_file != NULL)
+						fclose(current_log_file);
+					current_log_file = open_log_file(jobs, job, argv[1]);
 					job++;
 					no = 0;
 				}
 				no++;
 			}
-			fprintf(outputs[job], "%s\n", line.c_str());
+			if (current_log_file == NULL) {
+				current_log_file = open_log_file(jobs, job, argv[1]);
+			}
+			fprintf(current_log_file, "%s\n", line.c_str());
 		}
 		if (no != 0) {
 			cout << "saved " << no << " records into " << argv[1] << "-" << job << ".log" << " ..." << endl;
-			fclose(outputs[job]);
+			if (current_log_file != NULL)
+				fclose(current_log_file);
 		}
 		remove(log_filename.c_str());
 		return 0;
