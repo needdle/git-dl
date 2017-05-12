@@ -1,0 +1,5 @@
+git dl pb a 4
+cat a.pb | protoc -I. --decode=fast.Log git.proto > a.txt
+git dl pb b 1
+cat b.pb | protoc -I. --decode=fast.Log git.proto > b.txt
+diff a.txt b.txt
