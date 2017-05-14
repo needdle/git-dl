@@ -401,8 +401,8 @@ int main(int argc, char **argv) {
 					cout << "saved " << no << " records into " << argv[1] << "-" << job << ".log" << " ..." << endl;
 					if (current_log_file != NULL)
 						fclose(current_log_file);
-					current_log_file = open_log_file(jobs, job, argv[1]);
 					job++;
+					current_log_file = open_log_file(jobs, job, argv[1]);
 					no = 0;
 				}
 				no++;
