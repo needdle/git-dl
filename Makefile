@@ -21,7 +21,8 @@ target += LiteralType.proto
 target += Unit.proto
 target += fast.proto
 
-PB_LIB=$(shell pkg-config --libs protobuf)
+#PB_LIB=$(shell pkg-config --libs protobuf)
+PB_LIB=-lprotobuf
 
 all: $(target)
 
