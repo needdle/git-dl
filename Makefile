@@ -67,3 +67,14 @@ clean:
 
 test::
 	cd test; test.sh; cat a.txt
+
+git_pb2.py: git.proto
+	protoc -I=. --python_out=. git.proto
+
+a.pb:
+	git dl pb a 1
+
+src/fold.py: git_pb2.py
+
+load: src/fold.py a.pb
+	python $^
