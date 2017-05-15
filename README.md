@@ -63,7 +63,7 @@ a-0.pb, ..., a-($N-1).pb
 so that merging them together using `catlog a-*.pb a.pb` is the same as the single result file `a.pb` of 
 running the previous ```gitlog a``` command.
 
-6. Parsing larger repositories it can take substantial amount of time. 
+6. Parse larger repositories it can take substantial amount of time. 
 To speed it up, you can use [GNU Parallel](https://www.gnu.org/software/parallel) to run the process by the following commands:
 
 ```
@@ -80,7 +80,7 @@ git dl pb $file $num_threads
 ```
 where $file is the filename for the protobuf output, $num_threads is the number of threads for parallel processing.
 
-7. Loading the git log from protobuf binaries into python, prepared for Tensorflow Fold library.
+7. Load the git log from protobuf binaries into python, prepared for Tensorflow Fold library.
 ```
 python src/fold.py a.pb
 ```
