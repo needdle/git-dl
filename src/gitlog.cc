@@ -46,7 +46,7 @@ void srcML(fast::Element *unit, std::string text, std::string ext) {
 	strcat(buf, ".");
 	strcat(buf, ext.c_str());
 	string src_filename = buf;
-	ofstream output(src_filename, ios::out);
+	ofstream output(src_filename.c_str(), ios::out);
 	output << text << endl;
 	output.close();
 	strcpy(buf, "temp.XXXXXX");
@@ -60,7 +60,7 @@ void srcML(fast::Element *unit, std::string text, std::string ext) {
 	// cout << argv[1] << " " << argv[2] << endl;
 	mainRoutine(3, argv);
 	remove(src_filename.c_str());
-	fstream input(pb_filename, ios::in | ios::binary);
+	fstream input(pb_filename.c_str(), ios::in | ios::binary);
 	unit->ParseFromIstream(&input);
 	input.close();
 	remove(pb_filename.c_str());
