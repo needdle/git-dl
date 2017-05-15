@@ -79,3 +79,11 @@ The above command sequence has also been simplified to a single command below:
 git dl pb $file $num_threads
 ```
 where $file is the filename for the protobuf output, $num_threads is the number of threads for parallel processing.
+
+7. Loading the git log from protobuf binaries into python, prepared for Tensorflow Fold library.
+```
+python src/fold.py a.pb
+```
+where `a.pb` is the protobuf file created from previous commands.
+
+
