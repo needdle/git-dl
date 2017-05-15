@@ -24,7 +24,7 @@ First install the following prerequisites.
 Then perform the following commands to build the tool:
 ```
 make
-make install
+sudo make install
 ```
 
 ## Usage
