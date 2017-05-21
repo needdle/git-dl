@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 version() {
     echo "dl git plugin v0.0.1"

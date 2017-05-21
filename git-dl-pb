@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 usage() {
     echo "usage: git dl pb num_threads"
