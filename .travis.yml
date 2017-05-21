@@ -9,6 +9,7 @@ before_install:
     brew update;
     brew tap yijunyu/fast; brew install srcml;
     brew install protobuf;version=3.3.0;
+    brew install python;
     sudo pip install --upgrade tensorflow;
     sudo pip install https://storage.googleapis.com/tensorflow_fold/tensorflow_fold-0.0.1-cp27-none-linux_x86_64.whl;
     fi
