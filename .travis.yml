@@ -1,6 +1,5 @@
 language: cpp
 os:
-  - osx
   - linux
 dist: trusty
 sudo: required
