@@ -21,8 +21,11 @@ target += LiteralType.proto
 target += Unit.proto
 target += fast.proto
 
-#PB_LIB=$(shell pkg-config --libs protobuf)
-PB_LIB=-lprotobuf
+ifeq ($(UNAME_S),Darwin)
+PB_LIB=$(shell pkg-config --libs protobuf)
+else
+PB_LIB=/usr/local/lib/libprotobuf.a
+endif
 
 all: $(target)
 
