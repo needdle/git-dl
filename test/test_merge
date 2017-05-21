@@ -1,5 +1,12 @@
-gtime -f%e git dl pb a 4
+#!/bin/bash
+if [ "$(uname)" == "Linux" ]; then
+	gtime=/usr/bin/time
+else
+	gtime=gtime
+fi
+$gtime -f%e git dl pb a 4
 cat a.pb | protoc -I. --decode=fast.Log git.proto > a.txt
-gtime -f%e git dl pb b 1
+$gtime -f%e git dl pb b 1
 cat b.pb | protoc -I. --decode=fast.Log git.proto > b.txt
 diff a.txt b.txt
+rm -f a.pb b.pb a.txt b.txt
