@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/yijunyu/git-dl.svg?branch=master)](https://travis-ci.org/yijunyu/git-dl)
 # Git-Deep-Learning tool 
 
 This utility project contains a [git](https://github.com/git/git) command to

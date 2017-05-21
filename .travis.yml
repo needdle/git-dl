@@ -1,0 +1,33 @@
+language: cpp
+os:
+  - osx
+  - linux
+dist: trusty
+sudo: required
+before_install:
+  - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
+    brew update;
+    brew tap yijunyu/fast; brew install srcml;
+    brew install protobuf;version=3.3.0;
+    sudo pip install --upgrade tensorflow;
+    sudo pip install https://storage.googleapis.com/tensorflow_fold/tensorflow_fold-0.0.1-cp27-none-linux_x86_64.whl;
+    fi
+  - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
+    sudo apt-get install apt-transport-https;
+    sudo su -c "echo deb https://yijunyu.github.io/ubuntu ./ >> /etc/apt/sources.list";
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y;
+    sudo apt-get update;
+    sudo apt-get install gcc-4.9 g++-4.9;
+    sudo apt-get install parallel;
+    sudo ln -s -v -f $(which g++-4.9) /usr/bin/g++; 
+    sudo ln -s -v -f $(which gcc-4.9) /usr/bin/gcc; 
+    sudo apt-get install libarchive13;
+    sudo apt-get install -y --force-yes srcml;
+    wget https://github.com/google/protobuf/releases/download/v3.3.0/protobuf-cpp-3.3.0.tar.gz; tar xvfz protobuf-cpp-3.3.0.tar.gz; cd protobuf-3.3.0; ./configure; make; sudo make install; cd -;
+    sudo pip install --upgrade tensorflow;
+    sudo pip install https://storage.googleapis.com/tensorflow_fold/tensorflow_fold-0.0.1-cp27-none-linux_x86_64.whl;
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib;
+    fi
+script:
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+  - make && sudo make install
