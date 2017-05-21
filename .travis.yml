@@ -10,8 +10,9 @@ before_install:
     brew tap yijunyu/fast; brew install srcml;
     brew install protobuf;version=3.3.0;
     brew install python;
+    sudo pip install --upgrade pip;
     sudo pip install --upgrade tensorflow;
-    sudo pip install https://storage.googleapis.com/tensorflow_fold/tensorflow_fold-0.0.1-cp27-none-linux_x86_64.whl;
+    sudo pip install tensorflow_fold;
     fi
   - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then
     sudo apt-get install apt-transport-https;
@@ -25,6 +26,7 @@ before_install:
     sudo apt-get install libarchive13;
     sudo apt-get install -y --force-yes srcml;
     wget https://github.com/google/protobuf/releases/download/v3.3.0/protobuf-cpp-3.3.0.tar.gz; tar xvfz protobuf-cpp-3.3.0.tar.gz; cd protobuf-3.3.0; ./configure; make; sudo make install; cd -;
+    sudo pip install --upgrade pip;
     sudo pip install --upgrade tensorflow;
     sudo pip install https://storage.googleapis.com/tensorflow_fold/tensorflow_fold-0.0.1-cp27-none-linux_x86_64.whl;
     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib;
