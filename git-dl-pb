@@ -20,9 +20,12 @@ cmd_pb() {
 ## here $1 is the name of the protobuf file to output
 ## $2 is the number of parallel threads
 get_pb() {
-	if [ "$2" == "-t" -a "$3" != "" ]; then
-		cat $3 | protoc -I. --decode=fast.Log git.proto
-		return
+	if [ "${1/.pb/}" != "$1" ]; then
+		if [ -f "/usr/local/share/git.proto" ]; then
+			cat $1 | protoc -I/usr/local/share --decode=fast.Element /usr/local/share/fast.proto
+			cat $1 | protoc -I/usr/local/share --decode=fast.Log /usr/local/share/git.proto
+			return
+		fi
 	elif [ "$2" -lt 2 ]; then
 		## sequential
 		git dl log | gitlog $1

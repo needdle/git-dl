@@ -1,9 +1,12 @@
 BIN_DIR   = /usr/local/bin
+SHARE_DIR   = /usr/local/share
 LOADER    += git-dl
 LOADER    += gitlog
 LOADER    += catlog
 COMMANDS  += git-dl-log
 COMMANDS  += git-dl-pb
+SCHEMA  += fast.proto
+SCHEMA  += git.proto
 target += git.pb.cc
 target += git.pb.h
 target += gitlog
@@ -30,9 +33,10 @@ endif
 all: $(target)
 
 install:
-	install -d -m 0755 $(BIN_DIR)
+	install -d -m 0755 $(BIN_DIR) $(SHARE_DIR)
 	install -m 0755 $(LOADER) $(BIN_DIR)
 	install -m 0644 $(COMMANDS) $(BIN_DIR)
+	install -m 0644 $(SCHEMA) $(SHARE_DIR)
 
 uninstall:
 	test -d $(BIN_DIR) && \
