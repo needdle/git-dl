@@ -25,18 +25,31 @@ int main(int argc, char **argv) {
 		fstream input1(argv[0], ios::in | ios::binary);
 		fast::Log *log1 = new fast::Log();
 		log1->ParseFromIstream(&input1);
-		for (int i = 0; i<log1->commit_size(); i++ ){
-			std::string id = log1->commit(i).id(); 
-			if (ids.find(id) == ids.end()) {
-				ids.insert(id);
-				log0->add_commit()->MergeFrom(log1->commit(i));
-			}
-		}
 		for (int i = 0; i<log1->author_size(); i++ ){
 			std::string email = log1->author(i).email(); 
 			if (authors.find(email) == authors.end()) {
 				authors.insert(email);
-				log0->add_author()->MergeFrom(log1->author(i));
+				fast::Log_Author * author = log0->add_author();
+				author->MergeFrom(log1->author(i));
+				author->set_id(log0->author_size());
+			}
+		}
+		for (int i = 0; i<log1->commit_size(); i++ ){
+			std::string id = log1->commit(i).id(); 
+			if (ids.find(id) == ids.end()) {
+				ids.insert(id);
+				fast::Log_Commit *commit = log0->add_commit();
+				commit->MergeFrom(log1->commit(i));
+				int author_id = log1->commit(i).author_id(); 
+				std::string email = log1->author(author_id - 1).email();
+				for (int j = 0; j<log0->author_size(); j++ ){
+					if (log0->author(j).email() != email) 
+						continue;
+					int new_author_id = log0->author(j).id();
+					// if (new_author_id != author_id) { std::cout << author_id << "=>" << new_author_id << std::endl; }
+					commit->set_author_id(new_author_id);
+					break;
+				}
 			}
 		}
 	}
