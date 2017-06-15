@@ -1,8 +1,5 @@
 syntax="proto3";
 package fast;
-
-syntax="proto3";
-package fast;
 message Element {
 
 enum Kind {
