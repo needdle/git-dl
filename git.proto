@@ -510,6 +510,8 @@ null_type = 4;
 }
     LiteralType type = 1;
    }
+   int32 line = 7;
+   int32 column = 8;
 }
 message Log {
  message Commit {

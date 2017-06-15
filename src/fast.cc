@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #endif
 #include <sys/stat.h> 
+#include <srcSliceHandler.hpp>
+#include <srcSlice.hpp>
 
 using namespace std;
 using namespace rapidxml;
@@ -35,6 +37,7 @@ using namespace _fast::_Element::_Literal;
 using namespace _fast::_Element::_Unit;
 #endif
 
+void srcSliceToCsv(const srcSlice& handler);
 #ifdef PB_fast
 fast::Element* savePBfromXML(xml_node<> *node);
 void saveXMLfromPB(fstream &out, fast::Element *node);
@@ -46,8 +49,12 @@ void saveXMLfromFBS(fstream &out, const struct Element *element);
 #endif
 
 #ifdef GET_OPT
+int decode = 0; 
+int encode = 0; 
+int position = 0; 
+int slice = 0; 
+int Slice = 0; 
 int load_only = 0; 
-int diff_calc = 0;
 #endif
 
 int loadSrcML(int load_only, int argc, char **argv);
@@ -67,6 +74,8 @@ bool check_exists(const std::string& name) {
 	return true;
 }
 
+void saveTxtFromPB(char *input_file);
+
 int loadXML(int load_only, int argc, char**argv) {
   if (!check_exists(argv[1])) return 1;
   char *input_filename = argv[1];
@@ -83,7 +92,7 @@ int loadXML(int load_only, int argc, char**argv) {
     xml_document<> doc;
     try {
 	file<> xmlFile(input_filename);
-        doc.parse<0>(xmlFile.data());
+        doc.parse<rapidxml::parse_no_entity_translation>(xmlFile.data());
 #ifdef PB_fast
 	if (is_protobuf) {
 		fstream output(output_filename, ios::out | ios::trunc | ios::binary);
@@ -117,6 +126,8 @@ int loadXML(int load_only, int argc, char**argv) {
 }
 
 #ifdef FBS_fast
+void sliceFBS(srcSliceHandler& handler, const struct Element *element);
+
 int loadFBS(int load_only, int argc, char **argv) {
 	if (!check_exists(argv[1])) return 1;
 	char *filename = argv[1]; // the input file, which is assumed to be a binary flatbuffers
@@ -132,7 +143,7 @@ int loadFBS(int load_only, int argc, char **argv) {
 	fread(data, sizeof(char), length, file);
 	fclose(file);
 	const struct _fast::Element *element = flatbuffers::GetRoot<Element>(data);
-	if (!load_only) {
+	if (!load_only && !Slice) {
 		//string xml_filename = tmpnam(NULL);
 		char buf[100];
 		strcpy(buf, "/tmp/temp.XXXXXXXX"); 
@@ -145,19 +156,40 @@ int loadFBS(int load_only, int argc, char **argv) {
 		saveXMLfromFBS(out, element);
 		out << endl;
 		if (argc == 2) {
-			string catCommand = "cat ";
-			catCommand = catCommand + xml_filename;
-			return system(catCommand.c_str());
+			if (slice) {
+				string sliceCommand = "srcSlice ";
+				sliceCommand = sliceCommand + xml_filename + " > " + xml_filename + ".slice";
+				system(sliceCommand.c_str());
+				string catCommand = "cat ";
+				catCommand = catCommand + xml_filename + ".slice";
+				system(catCommand.c_str());
+				remove((xml_filename + ".slice").c_str());
+			} else {
+				string catCommand = "cat ";
+				catCommand = catCommand + xml_filename;
+				system(catCommand.c_str());
+			}
+			return remove(xml_filename.c_str());
 		}
 		argv[1] = (char*) xml_filename.c_str();
 		mainRoutine(argc, argv);
 		return remove(xml_filename.c_str());
+	} else if (!load_only && Slice) {
+		srcSlice sslice;
+		srcSliceHandler handler(&sslice.dictionary);
+		handler.startRoot(NULL, NULL, NULL, 0, NULL, 0, NULL);
+		sliceFBS(handler, element);
+		handler.endRoot(NULL, NULL, NULL);
+		DoComputation(handler, handler.sysDict->ffvMap);
+		srcSliceToCsv(sslice);
 	}
  	return 0;
 }
 #endif
 
 #ifdef PB_fast
+void slicePB(srcSliceHandler& handler, fast::Element *element);
+
 int loadPB(int load_only, int argc, char **argv) {
 	if (!check_exists(argv[1])) return 1;
 	char *input_filename = argv[1];
@@ -171,7 +203,7 @@ int loadPB(int load_only, int argc, char **argv) {
       cerr << "Failed to parse compilation unit." << endl;
       return -1;
     }
-    if (!load_only) {
+    if (!load_only && !Slice) {
 	// string xml_filename = tmpnam(NULL);
 	char buf[100];
 	strcpy(buf, "/tmp/temp.XXXXXXXX"); 
@@ -187,22 +219,107 @@ int loadPB(int load_only, int argc, char **argv) {
 	saveXMLfromPB(out, &unit);
 	out << endl;
 	if (argc == 2) {
-		string catCommand = "cat ";
-		catCommand = catCommand + xml_filename;
-		return system(catCommand.c_str());
+		if (slice) {
+			string sliceCommand = "srcSlice ";
+			sliceCommand = sliceCommand + xml_filename + " > " + xml_filename + ".slice";
+			system(sliceCommand.c_str());
+			string catCommand = "cat ";
+			catCommand = catCommand + xml_filename + ".slice";
+			system(catCommand.c_str());
+			remove((xml_filename + ".slice").c_str());
+		} else {
+			string catCommand = "cat ";
+			catCommand = catCommand + xml_filename;
+			system(catCommand.c_str());
+		}
+		return remove(xml_filename.c_str());
 	}
 	argv[1] = (char*) xml_filename.c_str();
 	mainRoutine(argc, argv);
 	return remove(xml_filename.c_str());
-    }
+    } else if (!load_only && Slice) {
+	srcSlice sslice;
+	srcSliceHandler handler(&sslice.dictionary);
+	handler.startRoot(NULL, NULL, NULL, 0, NULL, 0, NULL);
+	slicePB(handler, &unit);
+	handler.endRoot(NULL, NULL, NULL);
+	DoComputation(handler, handler.sysDict->ffvMap);
+	srcSliceToCsv(sslice);
+    } 
   }
   // Optional:  Delete all global objects allocated by libprotobuf.
   google::protobuf::ShutdownProtobufLibrary();
   return 0;
 }
+
+void slicePB(srcSliceHandler& handler, fast::Element *element) {
+	string text = "";
+	string tail = "";
+	int k = element->kind();
+	if (k == fast::Element_Kind_UNIT_KIND) {
+		struct srcsax_attribute attrs[3];
+		attrs[2].value = element->unit().filename().c_str();
+		handler.startUnit(NULL, NULL, NULL, 0, NULL, 3, attrs);
+	} else {
+		struct srcsax_attribute attrs[1];
+		attrs[0].value = std::to_string(element->line()).c_str();
+		handler.startElement(k, NULL, NULL, 0, NULL, 1, attrs);
+	}
+	text = element->text();
+	if (text!="") {
+		handler.charactersUnit(text.c_str(), strlen(text.c_str()));
+	}
+	for (int i=0; i<element->child().size(); i++)
+		slicePB(handler, element->mutable_child(i));
+	if (k == fast::Element_Kind_UNIT_KIND) 
+		handler.endUnit(NULL, NULL, NULL);
+	else 
+		handler.endElement(k, NULL, NULL);
+	tail = element->tail();
+	if (tail!="") {
+		handler.charactersUnit(tail.c_str(), strlen(tail.c_str()));
+	}
+}
 #endif
 
 #ifdef FBS_fast
+void sliceFBS(srcSliceHandler& handler, const struct Element *element) {
+	string text = "";
+	string tail = "";
+	int k = element->kind();
+	if (element->extra()) {
+		if (element->kind() == 0) {
+			struct srcsax_attribute attrs[3];
+			attrs[2].value = element->extra()->unit()->filename()->c_str();
+			handler.startUnit(NULL, NULL, NULL, 0, NULL, 3, attrs);
+		} 
+	}
+	if (element->text())
+		text = element->text()->c_str();
+        if ((!element->extra() && position && (element->line()!=0 || element->column()!=0)) || (element->extra() && element->kind()!=0)) {
+		struct srcsax_attribute attrs[1];
+		attrs[0].value = std::to_string(element->line()).c_str();
+		handler.startElement(k, NULL, NULL, 0, NULL, 1, attrs);
+	}
+	if (element->text())
+		handler.charactersUnit(text.c_str(), strlen(text.c_str()));
+	for (int i=0; i<element->child()->size(); i++)
+		sliceFBS(handler, element->child()->Get(i));
+	if (element->tail())
+		tail = element->tail()->c_str();
+	else 
+		tail = "";
+	if (element->extra())
+		if (element->kind() == 0) 
+			handler.endUnit(NULL, NULL, NULL);
+		else 
+			handler.endElement(k, NULL, NULL);
+	else 
+		handler.endElement(k, NULL, NULL);
+	if (element->tail())
+		handler.charactersUnit(tail.c_str(), strlen(tail.c_str()));
+}
+
 void saveXMLfromFBS(fstream &out, const struct Element *element) {
 	string tag;
 	string attr;
@@ -223,6 +340,8 @@ void saveXMLfromFBS(fstream &out, const struct Element *element) {
 				lang = "C#";
 			}
 			attr = attr + " xmlns=\"http://www.srcML.org/srcML/src\" xmlns:" + str + "=\"http://www.srcML.org/srcML/" + str + "\"";
+			if (position)
+				attr = attr + " xmlns:pos=\"http://www.srcML.org/srcML/position\"";
 			attr = attr + " revision=\"" + element->extra()->unit()->revision()->c_str() + "\"";
 			attr = attr + " language=\"" + lang + "\"";
 			attr = attr + " filename=\"" + element->extra()->unit()->filename()->c_str() + "\"";
@@ -231,11 +350,17 @@ void saveXMLfromFBS(fstream &out, const struct Element *element) {
 			string type = EnumNamesLiteralType()[element->extra()->literal()->type()];
 			type = type.substr(0, type.length() - 5);
 			attr = attr + " type=\"" + type + "\"";
+			if (position && (element->line()!=0 || element->column()!=0))
+				attr = attr + " pos:line=\"" + std::to_string(element->line()) + "\"" + " pos:column=\"" + std::to_string(element->column()) + "\"";
 		} else {
 			tag = EnumNamesKind()[element->kind()];
+			if (position && (element->line()!=0 || element->column()!=0))
+				attr = attr + " pos:line=\"" + std::to_string(element->line()) + "\"" + " pos:column=\"" + std::to_string(element->column()) + "\"";
 		}
 	} else {
 		tag = EnumNamesKind()[element->kind()];
+		if (position && (element->line()!=0 || element->column()!=0))
+			attr = attr + " pos:line=\"" + std::to_string(element->line()) + "\"" + " pos:column=\"" + std::to_string(element->column()) + "\"";
 	}
 	if (element->text())
 		text = element->text()->c_str();
@@ -271,7 +396,10 @@ void saveXMLfromPB(fstream & out, fast::Element *element) {
 			str = "cpp";
 			lang = "C#";
 		}
-		attr = attr + " xmlns=\"http://www.srcML.org/srcML/src\" xmlns:" + str + "=\"http://www.srcML.org/srcML/" + str + "\"";
+		attr = attr + " xmlns=\"http://www.srcML.org/srcML/src\"";
+		if (position)
+			attr = attr + " xmlns:pos=\"http://www.srcML.org/srcML/position\"";
+	        attr = attr + " xmlns:" + str + "=\"http://www.srcML.org/srcML/" + str + "\"";
 		attr = attr + " revision=\"" + element->unit().revision().c_str() + "\"";
 		attr = attr + " language=\"" + lang + "\"";
 		attr = attr + " filename=\"" + element->unit().filename().c_str() + "\"";
@@ -280,8 +408,12 @@ void saveXMLfromPB(fstream & out, fast::Element *element) {
 		string type = fast::Element_Literal_LiteralType_Name(element->literal().type());
 		type = type.substr(0, type.length() - 5);
 		attr = attr + " type=\"" + type + "\"";
+		if (position && (element->line()!=0 || element->column()!=0))
+			attr = attr + " pos:line=\"" + std::to_string(element->line()) + "\"" + " pos:column=\"" + std::to_string(element->column()) + "\"";
 	} else {
 		tag = fast::Element_Kind_Name(element->kind());
+		if (position && (element->line()!=0 || element->column()!=0))
+			attr = attr + " pos:line=\"" + std::to_string(element->line()) + "\"" + " pos:column=\"" + std::to_string(element->column()) + "\"";
 	}
 	text = element->text();
 	transform(tag.begin(), tag.end(), tag.begin(), ::tolower);
@@ -293,6 +425,27 @@ void saveXMLfromPB(fstream & out, fast::Element *element) {
 	out << "</" << tag << ">" << tail;
 }
 #endif
+
+void saveTxtFromPB(char *input_file) {
+	char buf[100];
+	sprintf(buf, "cat %s | protoc -I/usr/local/share --decode=fast.Element /usr/local/share/fast.proto", input_file);
+	system(buf);
+}
+void saveTxtFromPB(char *input_file, char *output_file) {
+	char buf[100];
+	sprintf(buf, "cat %s | protoc -I/usr/local/share --decode=fast.Element /usr/local/share/fast.proto > %s", input_file, output_file);
+	system(buf);
+}
+void savePBfromTxt(char *input_file) {
+	char buf[100];
+	sprintf(buf, "cat %s | protoc -I/usr/local/share --encode=fast.Element /usr/local/share/fast.proto", input_file);
+	system(buf);
+}
+void savePBfromTxt(char *input_file, char *output_file) {
+	char buf[1000];
+	sprintf(buf, "cat %s | protoc -I/usr/local/share --encode=fast.Element /usr/local/share/fast.proto > %s", input_file, output_file);
+	system(buf);
+}
 
 #ifdef PB_fast
 fast::Element* savePBfromXML(xml_node<> *node)
@@ -330,13 +483,20 @@ fast::Element* savePBfromXML(xml_node<> *node)
 				if (attr->name() == string("item")) {
 					unit->set_item(atoi(attr->value()));
 				}
-			}
-			if (is_literal) {
+			} else { 
+			    if (is_literal) {
 				if (attr->name() == string("type")) {
 					fast::Element_Literal_LiteralType type;
 					fast::Element_Literal_LiteralType_Parse(attr->name(), &type);
 					// literal->set_type(type);
 				}
+			    }
+			    if (attr->name() == string("pos:line")) {
+				element->set_line(atoi(attr->value()));
+			    }
+			    if (attr->name() == string("pos:column")) {
+				element->set_column(atoi(attr->value()));
+			    }
 			}
 		}
 		if (is_unit) element->set_allocated_unit(unit);
@@ -381,6 +541,8 @@ flatbuffers::Offset<_fast::Element> saveFBSfromXML(flatbuffers::FlatBufferBuilde
 	int language = -1;
 	int item = -1;
 	int type = -1;
+	int line = 0;
+	int column = 0;
 	if (tag != "") {
 		for (xml_attribute<> *attr = node->first_attribute(); attr; attr = attr->next_attribute())
 		{
@@ -411,6 +573,12 @@ flatbuffers::Offset<_fast::Element> saveFBSfromXML(flatbuffers::FlatBufferBuilde
 					type = flatbuffers::LookupEnum(EnumNamesLiteralType(), t.c_str());
 				}
 			}
+			if (attr->name() == string("pos:line")) {
+				line = atoi(attr->value());
+			}
+			if (attr->name() == string("pos:column")) {
+				column = atoi(attr->value());
+			}
 		}
 		string str = tag;
 		transform(str.begin(), str.end(),str.begin(), ::toupper);
@@ -436,7 +604,7 @@ flatbuffers::Offset<_fast::Element> saveFBSfromXML(flatbuffers::FlatBufferBuilde
 		if (node->next_sibling() != 0 && string(node->next_sibling()->name()) == "") { // sibling text node
 			tail = builder.CreateString(string(node->next_sibling()->value()));
 		}
-		auto element = _fast::CreateElement(builder, kind, text, tail, child, extra);
+		auto element = _fast::CreateElement(builder, kind, text, tail, child, extra, line, column);
 		return element;
 	} 
 	return 0;
@@ -452,13 +620,15 @@ int loadSrcML(int load_only, int argc, char **argv) {
 		if (!is_xml) {
 			// string xml_filename = tmpnam(NULL);
 			char buf[100];
-			strcpy(buf, "temp.XXXXXX"); 
+			strcpy(buf, "/tmp/temp.XXXXXXXX"); 
 			mkstemp(buf);
 			remove(buf);
 			string xml_filename = buf;
 			xml_filename +=	".xml";
 			string srcmlCommand = "srcml ";
 			srcmlCommand = srcmlCommand + argv[1] + " -o " + xml_filename;
+			if (position)
+				srcmlCommand = srcmlCommand + " --position";
 			system(srcmlCommand.c_str());
 			// call the command again, using the generated temporary XML file
 			argv[1] = (char *)xml_filename.c_str();
@@ -474,14 +644,41 @@ int loadSrcML(int load_only, int argc, char **argv) {
 		// invoke srcml and print to standard output
 		string srcmlCommand = "srcml ";
 		srcmlCommand = srcmlCommand + argv[1];
-		system(srcmlCommand.c_str());
+		if (slice) {
+			char buf[100];
+			strcpy(buf, "/tmp/temp.XXXXXXXX"); 
+			mkstemp(buf);
+			string xml_filename = buf;
+			xml_filename +=	".xml";
+			srcmlCommand = srcmlCommand + " --position" + " -o " + xml_filename;
+			system(srcmlCommand.c_str());
+			string sliceCommand = "srcSlice ";
+			sliceCommand = sliceCommand + xml_filename + " > " + xml_filename + ".slice";
+			system(sliceCommand.c_str());
+			string catCommand = "cat ";
+			catCommand = catCommand + xml_filename + ".slice";
+			system(catCommand.c_str());
+			remove((xml_filename + ".slice").c_str());
+			remove(xml_filename.c_str());
+		} else {
+			if (position)
+				srcmlCommand = srcmlCommand + " --position";
+			system(srcmlCommand.c_str());
+		}
 	}
 	return 0;
 }
 
 int mainRoutine(int argc, char* argv[]) {
    if (argc < 2) {
-	   cerr << "Usage: fast input_file output_file" << endl;
+	   cerr << "Usage: fast [-cehpsSt] input_file output_file"  << endl
+		 << "-c\tLoad only" << endl
+		 << "-d\tDecode protobuf into text format" << endl
+		 << "-e\tEncode text format into protobuf" << endl
+		 << "-h\tPrint this help message" << endl
+		 << "-p\tPreserve the position (line, column) numbers" << endl
+		 << "-s\tSlice programs on the srcML format" << endl
+		 << "-S\tSlice programs on the binary format" << endl;
 	   return 1;
    }
    if (argc == 3 && strcmp(argv[1], argv[2])==0) {
@@ -489,8 +686,24 @@ int mainRoutine(int argc, char* argv[]) {
 	   return 1;
    }
 #ifdef PB_fast
-   if (strcmp(argv[1]+strlen(argv[1])-3, ".pb")==0)
-	   return loadPB(load_only, argc, argv);
+   if (strcmp(argv[1]+strlen(argv[1])-3, ".pb")==0) {
+	  if (decode && argc == 2) {
+	    saveTxtFromPB(argv[1]);
+	    return 0;
+	  } else if (decode && argc == 3) {
+	    saveTxtFromPB(argv[1], argv[2]);
+	    return 0;
+	  }
+	  return loadPB(load_only, argc, argv);
+   }
+   if (strcmp(argv[1]+strlen(argv[1])-4, ".txt")==0) {
+	  if (encode && argc == 3) {
+	    savePBfromTxt(argv[1], argv[2]);
+	  } else if (encode && argc == 2) {
+	    savePBfromTxt(argv[1]);
+	  }
+	  return 0;
+   }
 #endif
 #ifdef FBS_fast
    if (strcmp(argv[1]+strlen(argv[1])-4, ".fbs")==0)
@@ -502,28 +715,47 @@ int mainRoutine(int argc, char* argv[]) {
 }
 
 int fast_main(int argc, char* argv[]) {
-	/*
-  char *cvalue = NULL;
-  	*/
   int c;
 
   opterr = 0;
-  while ((c = getopt (argc, argv, "cd")) != -1)
+  decode = 0;
+  position = 0;
+  slice = 0;
+  Slice = 0;
+  encode = 0;
+  while ((c = getopt (argc, argv, "cdehpsS")) != -1)
     switch (c) {
+      case 'h':
+	    cerr << "Usage: fast [-cehpsSt] input_file output_file"  << endl
+		 << "-c\tLoad only" << endl
+		 << "-d\tDecode protobuf into text format" << endl
+		 << "-e\tEncode text format into protobuf" << endl
+		 << "-h\tPrint this help message" << endl
+		 << "-p\tPreserve the position (line, column) numbers" << endl
+		 << "-s\tSlice programs on the srcML format" << endl
+		 << "-S\tSlice programs on the binary format" << endl;
+	    return 0;
+      case 'e':
+	    encode = 1;
+	    break;
+      case 'S':
+	    Slice = 1;
+	    position = 1; // slicing requires positions
+	    break;
+      case 's':
+	    slice = 1;
+	    position = 1; // slicing requires positions
+	    break;
+      case 'p':
+	    position = 1;
+	    break;
+      case 'd':
+	    decode = 1;
+	    break;
       case 'c':
         load_only = 1;
         break;
-      case 'd':
-        diff_calc = 1;
-        break;
-      /* case 'c':
-        cvalue = optarg;
-        break; */
       case '?':
-	/*
-        if (optopt == 'c')
-          fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-        else */
 	if (isprint (optopt))
           fprintf (stderr, "Unknown option `-%c'.\n", optopt);
         else

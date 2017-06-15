@@ -5,6 +5,7 @@ LOADER    += gitlog
 LOADER    += catlog
 COMMANDS  += git-dl-log
 COMMANDS  += git-dl-pb
+COMMANDS  += git-dl-slice
 SCHEMA  += fast.proto
 SCHEMA  += git.proto
 target += git.pb.cc
@@ -32,7 +33,7 @@ endif
 
 all: $(target)
 
-install:
+install: $(LOADER) $(COMMANDS)
 	install -d -m 0755 $(BIN_DIR) $(SHARE_DIR)
 	install -m 0755 $(LOADER) $(BIN_DIR)
 	install -m 0644 $(COMMANDS) $(BIN_DIR)
@@ -64,11 +65,11 @@ src/hunk.proto.in: modline.proto
 CCFLAGS=-g
 CCFLAGS=-O3
 
-gitlog: git.pb.cc src/gitlog.cc src/fast.cc
-	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
+gitlog: git.pb.cc src/gitlog.cc src/fast.cc src/cpp/srcSlice.cpp src/cpp/srcSliceHandler.cpp src/cpp/output.cpp
+	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 osx/libsrcsax.a -o $@
 
-catlog: git.pb.cc src/catlog.cc src/fast.cc
-	c++ $(CCFLAGS) -I. -Irapidxml -DPB_fast $^ $(PB_LIB) -o $@
+catlog: git.pb.cc src/catlog.cc src/fast.cc src/cpp/srcSlice.cpp src/cpp/srcSliceHandler.cpp src/cpp/output.cpp
+	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 osx/libsrcsax.a -o $@
 
 clean:
 	rm -rf $(target) temp.* test/temp.* *.dSYM

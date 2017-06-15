@@ -57,7 +57,6 @@ void srcML(fast::Element *unit, std::string text, std::string ext) {
 	char **argv = (char**) malloc(3*sizeof(char*));
 	argv[1] = (char*) src_filename.c_str();
 	argv[2] = (char*) pb_filename.c_str();
-	// cout << argv[1] << " " << argv[2] << endl;
 	mainRoutine(3, argv);
 	remove(src_filename.c_str());
 	fstream input(pb_filename.c_str(), ios::in | ios::binary);
@@ -93,7 +92,7 @@ void process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::s
 			    text_new += line + "\n";
 		    }
 		}
-		if (! is_special) {
+		if (! is_special && line != "") {
 		    line = line.substr(1);
 		    text_old += line + "\n";
 		    text_new += line + "\n";
@@ -315,17 +314,22 @@ void commit(fast::Log_Commit * current_commit, std::string &diff) {
 				    is_special = true;
 			    }
 			}
-			if (! is_special)
+			if (! is_special) {
 				hunk_text += diff_line + "\n";
+			}
 		    }
-		    /*
-		    lineno ++;
-		    if (lineno > 100) {
-			    cout << "." << flush;
-			    lineno = 0;
-		    }
-		    */
 		} while (linePos != std::string::npos);
+		if (hunk != NULL && hunk_text != "" && diff_record != NULL) {
+			// cout << "ext = " << diff_record->is_code() << endl;
+			// cout << "hunk = " << hunk_text << endl;
+			if (diff_record->is_code() != "") {
+			    process_hunk_xml(hunk, hunk_text, diff_record->is_code()); 
+			} else {
+			    process_hunk_text(hunk, hunk_text);
+			}
+			hunk = NULL;
+			hunk_text = "";
+		}
 		diff = "";
 	}
 }

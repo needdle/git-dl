@@ -1,3 +1,5 @@
+syntax="proto3";
+package fast;
 message Element {
 #include "ElementType.proto"
 __COUNTER__
@@ -15,4 +17,6 @@ __COUNTER__
    message Literal {
 #include "Literal.proto"
    }
+   int32 line = __COUNTER__;
+   int32 column = __COUNTER__;
 }
