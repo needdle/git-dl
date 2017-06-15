@@ -1,0 +1,35 @@
+#!/bin/bash
+
+usage() {
+    echo "Select historic logs for specific commit, or hunk"
+    echo "usage: git dl slice [name] [commit_id [hunk_id]]"
+    echo
+}
+
+cmd_slice() {
+    if [ "$#" -eq 1 ]; then
+        if [ $1 == "help" ]; then
+            usage; exit 0
+        fi
+        say_log $1; exit 0
+    elif [ "$#" -eq 0 ]; then
+	usage; exit 1
+    else
+        get_slice $*; exit 0
+    fi
+}
+
+get_slice() {
+    commit_id=$1
+    hunk_id=$2
+    name=$3
+    if [ "$commit_id" == "" -a "$hunk_id" == "" ]; then
+	    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd"
+    elif [ "$commit_id" != "" -a "$hunk_id" == "" ]; then
+	    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd" $commit_id^..$commit_id
+    elif [ "$commit_id" != "" -a "$hunk_id" != "" -a "$name" == "" ]; then
+	    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd" $commit_id^..$commit_id $hunk_id
+    else
+	    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd" $commit_id^..$commit_id $hunk_id | gitlog $name
+    fi
+}
