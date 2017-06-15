@@ -62,8 +62,8 @@ src/git.proto.in: commit.proto
 src/git.proto.in: fast.proto
 src/hunk.proto.in: modline.proto
 
-CCFLAGS=-O3
 CCFLAGS=-g
+CCFLAGS=-O3
 
 gitlog: git.pb.cc src/gitlog.cc src/fast.cc src/cpp/srcSlice.cpp src/cpp/srcSliceHandler.cpp src/cpp/output.cpp
 	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 osx/libsrcsax.a -o $@
