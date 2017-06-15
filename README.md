@@ -87,4 +87,9 @@ python src/fold.py a.pb
 ```
 where `a.pb` is the protobuf file created from previous commands.
 
+8. Slice git log for a particular commit and a particular file from protobuf binaries into python, prepared for Tensorflow Fold library.
+```
+git dl slice $commit $path a
+```
+where `$commit` is the hash of a commit id, `$path` is the path to a file in the changeset, `a.pb` is the protobuf file to be created by the command.
 
