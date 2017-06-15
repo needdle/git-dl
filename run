@@ -1,0 +1,4 @@
+git dl slice dc520d2e8284318789a17dbf462716c5a5064b0f src/srcSliceHandler.hpp a
+git dl slice 627068ef14fe82a25d96deb6e4c82d7d2f032f1b git-dl-slice b
+catlog a.pb b.pb c.pb
+python3 src/fold.py c.pb

@@ -12,7 +12,7 @@ function gpu_setup() {
 	make git_pb2.py
 	cp git_pb2.py src
 }
-cpu_setup
-#gpu_setup
+#cpu_setup
+gpu_setup
 export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/usr/local/cuda-8.0/lib64
 python3 src/fold.py $1
