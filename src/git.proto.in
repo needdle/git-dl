@@ -1,5 +1,3 @@
-syntax="proto3";
-package fast;
 #include "fast.proto"
 message Log {
 __COUNTER__
