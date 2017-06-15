@@ -11,7 +11,7 @@ cmd_slice() {
         if [ $1 == "help" ]; then
             usage; exit 0
         fi
-        say_log $1; exit 0
+        get_slice $1; exit 0
     elif [ "$#" -eq 0 ]; then
 	usage; exit 1
     else

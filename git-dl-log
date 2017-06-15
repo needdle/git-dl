@@ -12,7 +12,7 @@ cmd_log() {
         if [ $1 == "help" ]; then
             usage; exit 0
         fi
-        say_log $1; exit 0
+        get_log $1; exit 0
     fi
     usage; exit 1
 }
