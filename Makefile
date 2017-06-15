@@ -27,8 +27,12 @@ target += fast.proto
 
 ifeq ($(UNAME_S),Darwin)
 PB_LIB=$(shell pkg-config --libs protobuf)
+SAX_LIB=osx/libsrcsax.a
+XML2_INCLUDE=-I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2
 else
 PB_LIB=/usr/local/lib/libprotobuf.a
+SAX_LIB=debian/libsrcsax.a
+XML2_INCLUDE=-I/usr/include/libxml2
 endif
 
 all: $(target)
@@ -65,11 +69,13 @@ src/hunk.proto.in: modline.proto
 CCFLAGS=-g
 CCFLAGS=-O3
 
+
+
 gitlog: git.pb.cc src/gitlog.cc src/fast.cc src/cpp/srcSlice.cpp src/cpp/srcSliceHandler.cpp src/cpp/output.cpp
-	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 osx/libsrcsax.a -o $@
+	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 $(SAX_LIB) -o $@
 
 catlog: git.pb.cc src/catlog.cc src/fast.cc src/cpp/srcSlice.cpp src/cpp/srcSliceHandler.cpp src/cpp/output.cpp
-	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 osx/libsrcsax.a -o $@
+	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Irapidxml -Isrc -Isrc/headers -Isrc/cpp -I/usr/include/libxml2 -DPB_fast $^ $(PB_LIB) -lxml2 $(SAX_LIB) -o $@
 
 clean:
 	rm -rf $(target) temp.* test/temp.* *.dSYM
