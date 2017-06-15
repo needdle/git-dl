@@ -25,6 +25,7 @@ before_install:
     sudo apt-get install libarchive13;
     sudo apt-get install -y --force-yes srcml;
     wget https://github.com/google/protobuf/releases/download/v3.3.0/protobuf-cpp-3.3.0.tar.gz; tar xvfz protobuf-cpp-3.3.0.tar.gz; cd protobuf-3.3.0; ./configure; make; sudo make install; cd -;
+    git clone --recursive https://github.com/srcml/srcSlice; cd srcSlice; mkdir build; cd build; cmake ..; make; sudo make install; cd ../..;
     sudo pip install --upgrade pip;
     sudo pip install --upgrade tensorflow;
     sudo pip install https://storage.googleapis.com/tensorflow_fold/tensorflow_fold-0.0.1-cp27-none-linux_x86_64.whl;
