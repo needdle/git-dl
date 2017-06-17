@@ -70,10 +70,10 @@ CCFLAGS=-g
 CCFLAGS=-O3
 
 gitlog: git.pb.cc src/gitlog.cc
-	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
+	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
 
 catlog: git.pb.cc src/catlog.cc
-	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
+	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
 
 clean:
 	rm -rf $(target) temp.* test/temp.* *.dSYM
