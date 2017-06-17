@@ -66,8 +66,8 @@ src/git.proto.in: commit.proto
 src/git.proto.in: fast.proto
 src/hunk.proto.in: modline.proto
 
-CCFLAGS=-O3
 CCFLAGS=-g
+CCFLAGS=-O3
 
 gitlog: git.pb.cc src/gitlog.cc
 	c++ -std=c++11 $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
