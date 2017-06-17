@@ -3,6 +3,7 @@
 #include <string>
 #include <stdlib.h>
 #include "git.pb.h"
+#include <unistd.h>
 using namespace std;
 
 #define SEPARATOR "~~~~~~~~~~~~"
@@ -15,8 +16,6 @@ using namespace std;
 #define SKIP_PREFIX4 "deleted file mode "
 
 #define IS_CODE(x) (x=="cpp" || x=="hpp" || x=="java" || x=="cc" || x=="h" || x=="m" || x=="cs" )
-
-int mainRoutine(int argc, char**argv);
 
 int lookup_author(fast::Log *log, std::string name, std::string email) {
 	for (int i=0; i<log->author().size(); i++) {
@@ -32,40 +31,66 @@ int lookup_author(fast::Log *log, std::string name, std::string email) {
 	return author->id();
 }
 
+int n_srcML_invoked = 0;
 /** 
  * convert text into a protobuf element
  */
-void srcML(fast::Element *unit, std::string text, std::string ext) {
+bool srcML(fast::Element *unit, std::string text, std::string ext) {
 	char buf[100];
-	strcpy(buf, "temp.XXXXXX");
-	mkstemp(buf);
+	strcpy(buf, "/tmp/temp.XXXXXX");
+	int id = mkstemp(buf);
+	close(id);
 	remove(buf);
-	std::string fn = "/tmp/";
-	fn += buf;
-	remove(fn.c_str());
 	strcat(buf, ".");
 	strcat(buf, ext.c_str());
 	string src_filename = buf;
-	ofstream output(src_filename.c_str(), ios::out);
-	output << text << endl;
-	output.close();
-	strcpy(buf, "temp.XXXXXX");
-	mkstemp(buf);
+	// ofstream output(ios::out | ios::trunc);
+	// output << text << endl;
+	FILE *output = fopen(src_filename.c_str(), "w");
+	if (output!=NULL) {
+		fprintf(output, "%s", text.c_str());
+		fclose(output);
+	} else {
+		cerr << "cannot write to the file " << src_filename << endl;
+		cerr << text << endl;
+	}
+	strcpy(buf, "/tmp/temp.XXXXXX");
+	id = mkstemp(buf);
+	close(id);
 	remove(buf);
 	strcat(buf, ".pb");
 	string pb_filename = buf;
-	char **argv = (char**) malloc(3*sizeof(char*));
-	argv[1] = (char*) src_filename.c_str();
-	argv[2] = (char*) pb_filename.c_str();
-	mainRoutine(3, argv);
-	remove(src_filename.c_str());
-	fstream input(pb_filename.c_str(), ios::in | ios::binary);
-	unit->ParseFromIstream(&input);
-	input.close();
-	remove(pb_filename.c_str());
+	char cmd[200];
+	FILE * src_file  = fopen(src_filename.c_str(), "r");
+	if (src_file != NULL) {
+		fclose(src_file);
+		//sprintf(cmd, "lsof -p %d", getpid()); system(cmd);
+		sprintf(cmd, "fast %s %s", src_filename.c_str(), pb_filename.c_str());
+		n_srcML_invoked++;
+		int ret_val = system(cmd);
+		// cout << cmd << endl;
+		if (ret_val == 0) {
+			remove(src_filename.c_str());
+			FILE * pb_file  = fopen(pb_filename.c_str(), "r");
+			if (pb_file != NULL) {
+				fclose(pb_file);
+				fstream input(pb_filename.c_str(), ios::in | ios::binary);
+				unit->ParseFromIstream(&input);
+				input.close();
+				remove(pb_filename.c_str());
+			}
+		} else {
+			cerr << "Error found" << endl;
+			return false;
+		}
+	} else {
+		cerr << "srcML invoked ... text outputed ... but cannot open " << src_filename << endl;
+		return false;
+	}
+	return true;
 }
 
-void process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::string ext) {
+bool process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::string ext) {
         size_t linePos;
 	std::string text_old = "";
 	std::string text_new = "";
@@ -102,16 +127,21 @@ void process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::s
 	} while (linePos != std::string::npos);
 	if (text_old != "") {
 		fast::Element *unit = hunk->add_element();
-		srcML(unit, text_old, ext);
+		bool success = srcML(unit, text_old, ext);
+		if (!success) return false;
 		// ignore the filename field
-		unit->mutable_unit()->set_filename("");
+		if (unit!=NULL)
+			unit->mutable_unit()->set_filename("");
 	}
 	if (text_new != "") {
 		fast::Element *unit = hunk->add_element();
-		srcML(unit, text_new, ext);
+		bool success = srcML(unit, text_new, ext);
+		if (!success) return false;
 		// ignore the filename field
-		unit->mutable_unit()->set_filename("");
+		if (unit!=NULL)
+			unit->mutable_unit()->set_filename("");
 	}
+	return true;
 }
 
 void process_hunk_text(fast::Log_Commit_Diff_Hunk *hunk, std::string text) {
@@ -171,8 +201,9 @@ void commit(fast::Log_Commit * current_commit, std::string &diff) {
 		fast::Log_Commit_Diff * diff_record = NULL;
 		size_t linePos = std::string::npos;
 		std::string hunk_text = "";
-		int lineno = 0;
+		// int lineno = 0;
 		do {
+		    // cout << "line " << lineno++ << endl;
 		    linePos = diff.find("\n");
 		    if (linePos != std::string::npos) {
 			diff_line = diff.substr(0, linePos);
@@ -250,7 +281,10 @@ void commit(fast::Log_Commit * current_commit, std::string &diff) {
 			    if (hunk_prefix == "") {
 				    if (hunk != NULL && hunk_text != "") {
 					if (diff_record->is_code() != "") {
-					    process_hunk_xml(hunk, hunk_text, diff_record->is_code()); 
+					    bool success = process_hunk_xml(hunk, hunk_text, diff_record->is_code()); 
+					    if (!success) {
+						    process_hunk_text(hunk, hunk_text);
+					    }
 					} else {
 					    process_hunk_text(hunk, hunk_text);
 					}
@@ -320,10 +354,11 @@ void commit(fast::Log_Commit * current_commit, std::string &diff) {
 		    }
 		} while (linePos != std::string::npos);
 		if (hunk != NULL && hunk_text != "" && diff_record != NULL) {
-			// cout << "ext = " << diff_record->is_code() << endl;
-			// cout << "hunk = " << hunk_text << endl;
 			if (diff_record->is_code() != "") {
-			    process_hunk_xml(hunk, hunk_text, diff_record->is_code()); 
+			    bool success = process_hunk_xml(hunk, hunk_text, diff_record->is_code()); 
+			    if (!success) {
+				    process_hunk_text(hunk, hunk_text);
+			    }
 			} else {
 			    process_hunk_text(hunk, hunk_text);
 			}
@@ -373,12 +408,10 @@ int main(int argc, char **argv) {
 		jobs = atoi(argv[2]);
 	}
 	char buf[100];
-	strcpy(buf, "temp.XXXXXX");
-	mkstemp(buf);
+	strcpy(buf, "/tmp/temp.XXXXXX");
+	int id = mkstemp(buf);
+	close(id);
 	remove(buf);
-	std::string fn = "/tmp/";
-	fn += buf;
-	remove(fn.c_str());
 	strcat(buf, ".log");
 	string log_filename = buf;
 	FILE *input0 = fopen(log_filename.c_str(), "w");
@@ -425,7 +458,6 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 	int job = 0;
-	// int lineno = 0;
         while(!input.eof()) {
 		std::getline(input, line);
 		if (strcmp(line.c_str(), SEPARATOR)==0) {
@@ -479,10 +511,11 @@ int main(int argc, char **argv) {
 	if (no != 0) {
 		commit(current_commit, diff);
 		cout << "saving " << no << " records into " << filename << " ..." << endl;
-		fstream output(filename, ios::out | ios::trunc | ios::binary);
+		ofstream output(filename, ios::out | ios::trunc | ios::binary);
 		log->SerializeToOstream(&output);
 		output.close();
 	}
+	// cout << "FIN" << endl;
         google::protobuf::ShutdownProtobufLibrary();
 	return 0;
 }
