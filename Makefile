@@ -61,6 +61,7 @@ src/diff.proto.in: hunk.proto
 src/fast.proto.in: ElementType.proto
 src/fast.proto.in: Literal.proto
 src/fast.proto.in: Unit.proto
+src/fast.proto.in: SmaliType.proto
 src/git.proto.in: author.proto
 src/git.proto.in: commit.proto
 src/git.proto.in: fast.proto
