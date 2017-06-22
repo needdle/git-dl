@@ -9,7 +9,8 @@ from google.protobuf import text_format
 proto_tools.map_proto_source_tree_path("", os.getcwd())
 proto_tools.import_proto_file("git.proto")
 
-log = Log()
+#log = Log()
+log = Pairs()
 with open(sys.argv[1], 'rb') as f:
            log.ParseFromString(f.read())
            f.close()
