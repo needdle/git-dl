@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <stdlib.h>
-#include "git.pb.h"
+#include "fast.pb.h"
 #include <unistd.h>
 using namespace std;
 

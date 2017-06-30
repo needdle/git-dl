@@ -1,11 +1,14 @@
 syntax="proto3";
 package fast;
 message Element {
-#include "ElementType.proto"
 __COUNTER__
+#include "ElementType.proto"
+#include "SmaliType.proto"
    Kind kind = __COUNTER__;
    string text = __COUNTER__;
    string tail = __COUNTER__;
+   int32 pos = __COUNTER__;
+   int32 length = __COUNTER__;
    repeated Element child = __COUNTER__;
    oneof extra {
      Unit unit = __COUNTER__;
@@ -19,4 +22,125 @@ __COUNTER__
    }
    int32 line = __COUNTER__;
    int32 column = __COUNTER__;
+}
+
+message Delta {
+   string src = 1;
+   string dst = 2;
+   repeated Diff diff = 3;
+   message Diff {
+	enum DeltaType {
+	    MATCH = 0;
+	    ADD = 1;
+	    DEL = 2;
+	    MOVE = 3;
+	    UPDATE = 4;
+        }
+	DeltaType type = 1;
+   	oneof delta {
+		Match match = 2;
+		Add add = 3;
+		Del del = 4;
+		Move move = 5;
+		Update update = 6;
+	}
+	message Match {
+		int32 src = 1;
+		int32 dst = 2;
+	}
+	message Add {
+		int32 src = 1;
+		int32 dst = 2;
+		int32 position = 3;
+	}
+	message Del {
+		int32 src = 1;
+	}
+	message Move {
+		int32 src = 1;
+		int32 dst = 2;
+		int32 position = 3;
+	}
+	message Update {
+		int32 src = 1;
+		string label = 2;
+	}
+   }
+}
+
+message Pairs {
+   message Pair {
+	enum CloneType {
+	  MAYBE = 0;
+	  YES = 1;
+	  NO = 2;
+	}
+	string project = 1;
+	Diff left = 2;
+	Diff right = 3;
+	CloneType type = 4;
+	message Diff {
+		int32 left_line = 1;
+		int32 left_column = 2;
+		int32 right_line = 3;
+		int32 right_column = 4;
+		Element old_code = 5;
+		Element new_code = 6;
+	}
+   } 
+   repeated Pair pair = 1;
+}
+
+#include "log.proto"
+
+message Slices {
+    message Slice {
+	enum ChangeType {
+		UNCHANGED = 0;
+		ADD = 1;
+		DEL = 2;
+	}
+	message SourceFile {
+		message Function {
+			message Variable {
+				message Position {
+					int32 lineno = 1;
+					ChangeType type = 2;
+					int32 delta_lineno = 5;
+				}
+				message FunctionDecl {
+					string name = 1;
+					int32 lineno = 2;
+				}
+				string name = 1;
+				Position pos = 2;
+				ChangeType type = 3;
+				repeated Position defn = 4;
+				repeated Position use = 5;
+				repeated string dvar = 6;
+				repeated string alias = 7;
+				repeated FunctionDecl cfunc = 8;
+			}
+			repeated Variable variable = 1;
+			string name = 2;
+			ChangeType type = 3;
+		}
+		repeated Function function = 1;
+		string name = 2;
+		ChangeType type = 3;
+	}
+	repeated SourceFile file = 1;
+	string hash = 2;
+      }
+      repeated Slice slice = 1;
+}
+
+message Data {
+ oneof RecordType {
+	Element element = 1;
+	Log log = 2;
+	Delta delta = 3;
+	Pairs pairs = 4;
+	Slices slices = 5;
+ }
 }
