@@ -1,3 +1,0 @@
-bytes line = 1;
-bool is_add = 2;
-bool is_del = 3;
