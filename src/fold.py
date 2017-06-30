@@ -9,7 +9,12 @@ from google.protobuf import text_format
 proto_tools.map_proto_source_tree_path("", os.getcwd())
 proto_tools.import_proto_file("fast.proto")
 
+<<<<<<< HEAD
 data = Data()
+=======
+#log = Log()
+log = Pairs()
+>>>>>>> d24737609feab0510ddb65c0472fc65204e3225a
 with open(sys.argv[1], 'rb') as f:
            data.ParseFromString(f.read())
            f.close()

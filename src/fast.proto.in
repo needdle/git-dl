@@ -90,6 +90,7 @@ message Pairs {
    } 
    repeated Pair pair = 1;
 }
+<<<<<<< HEAD
 
 #include "log.proto"
 
@@ -144,3 +145,5 @@ message Data {
 	Slices slices = 5;
  }
 }
+=======
+>>>>>>> d24737609feab0510ddb65c0472fc65204e3225a

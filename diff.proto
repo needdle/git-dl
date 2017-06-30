@@ -1,0 +1,22 @@
+string a = 1;
+string b = 2;
+bool is_new = 3;
+string is_code = 4;
+string index_from = 5;
+string index_to = 6;
+string mode = 7;
+message Hunk {
+int32 from_lineno = 1;
+int32 from_column = 2;
+int32 to_lineno = 3;
+int32 to_column = 4;
+string context = 5;
+message ModLine {
+bytes line = 1;
+bool is_add = 2;
+bool is_del = 3;
+}
+repeated Element element = 6;
+repeated ModLine mod = 7;
+}
+repeated Hunk hunk = 8;

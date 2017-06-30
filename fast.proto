@@ -693,6 +693,7 @@ message Pairs {
   Element old_code = 5;
   Element new_code = 6;
  }
+<<<<<<< HEAD
    }
    repeated Pair pair = 1;
 }
@@ -792,4 +793,8 @@ message Data {
  Pairs pairs = 4;
  Slices slices = 5;
  }
+=======
+   }
+   repeated Pair pair = 1;
+>>>>>>> d24737609feab0510ddb65c0472fc65204e3225a
 }

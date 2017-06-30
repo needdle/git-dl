@@ -1,0 +1,8 @@
+enum LiteralType {
+number_type = 0;
+char_type = 1;
+string_type = 2;
+boolean_type = 3;
+null_type = 4;
+}
+    LiteralType type = 1;
