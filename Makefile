@@ -60,17 +60,10 @@ src/diff.proto.in: hunk.proto
 src/fast.proto.in: ElementType.proto
 src/fast.proto.in: Literal.proto
 src/fast.proto.in: Unit.proto
-<<<<<<< HEAD
 src/fast.proto.in: log.proto
 src/log.proto.in: commit.proto
 src/log.proto.in: author.proto
 src/fast.proto.in: SmaliType.proto
-=======
-src/fast.proto.in: SmaliType.proto
-src/git.proto.in: author.proto
-src/git.proto.in: commit.proto
-src/git.proto.in: fast.proto
->>>>>>> d24737609feab0510ddb65c0472fc65204e3225a
 src/hunk.proto.in: modline.proto
 
 CCFLAGS=-g
