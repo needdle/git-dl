@@ -8,8 +8,9 @@ using namespace std;
 int main(int argc, char **argv) {
         GOOGLE_PROTOBUF_VERIFY_VERSION;
 	fstream input0(argv[1], ios::in | ios::binary);
-	fast::Log *log0 = new fast::Log();
-	log0->ParseFromIstream(&input0);
+	fast::Data *data0 = new fast::Data();
+	data0->ParseFromIstream(&input0);
+	fast::Log *log0 = data0->mutable_log();
 	std::set<std::string> ids;
 	std::set<std::string> authors;
 	for (int i = 0; i<log0->commit_size(); i++ ){
@@ -23,8 +24,9 @@ int main(int argc, char **argv) {
 		argv = argv + 1;
 		cout << "loading " << argv[0] << " ... " << endl;
 		fstream input1(argv[0], ios::in | ios::binary);
-		fast::Log *log1 = new fast::Log();
-		log1->ParseFromIstream(&input1);
+		fast::Data *data1 = new fast::Data();
+		data1->ParseFromIstream(&input1);
+		fast::Log *log1 = data1->mutable_log();
 		for (int i = 0; i<log1->author_size(); i++ ){
 			std::string email = log1->author(i).email(); 
 			if (authors.find(email) == authors.end()) {
@@ -54,7 +56,7 @@ int main(int argc, char **argv) {
 		}
 	}
 	ofstream output(argv[1], ios::out);
-        log0->SerializeToOstream(&output);
+        data0->SerializeToOstream(&output);
         google::protobuf::ShutdownProtobufLibrary();
         output.close();
 	return 0;

@@ -427,7 +427,8 @@ int main(int argc, char **argv) {
 	fstream input(log_filename.c_str(), ios::in);
 	char filename[100];
 	FILE *current_log_file = NULL;
-        fast::Log * log = new fast::Log();
+	fast::Data *data = new fast::Data();
+        fast::Log * log = data->mutable_log();
 	int no = 0;
 	if (parallel) {
 		int job = 0;
@@ -469,10 +470,11 @@ int main(int argc, char **argv) {
 					sprintf(filename, "%s.pb", argv[1]);
 				cout << "saving " << no << " records into " << filename << " ..." << endl;
 				fstream output(filename, ios::out | ios::trunc | ios::binary);
-				log->SerializeToOstream(&output);
+				data->SerializeToOstream(&output);
 				output.close();
 				job++;
-				log = new fast::Log();
+				data = new fast::Data();
+				log = data->mutable_log();
 				current_commit = NULL;
 				no = 0;
 			}
@@ -512,7 +514,7 @@ int main(int argc, char **argv) {
 		commit(current_commit, diff);
 		cout << "saving " << no << " records into " << filename << " ..." << endl;
 		ofstream output(filename, ios::out | ios::trunc | ios::binary);
-		log->SerializeToOstream(&output);
+		data->SerializeToOstream(&output);
 		output.close();
 	}
 	// cout << "FIN" << endl;
