@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/yijunyu/git-dl.svg?branch=master)](https://travis-ci.org/yijunyu/git-dl)
+[![Build Status](https://travis-ci.org/needdle/git-dl.svg?branch=master)](https://travis-ci.org/needdle/git-dl)
 # Git-Deep-Learning tool 
 
 This utility project contains a [git](https://github.com/git/git) command to
@@ -8,7 +8,7 @@ Fold](https://github.com/tensorflow/fold).
 
 If the Git diff hunks come from a source code file (determined by a file
 extension recognisable by srcML), we turn them into [flattened abstract
-syntax trees](https://github.com/yijunyu/fast) binary structures in Protobuf.
+syntax trees](https://github.com/f-ast/fast) binary structures in Protobuf.
 
 ## Installation
 
@@ -19,7 +19,7 @@ First install the following prerequisites.
 * [srcML](http://www.srcml.org)
 * [protobuf](https://github.com/google/protobuf)
 * [Tensorflow Fold](https://github.com/tensorflow/fold)
-* [fast](https://github.com/yijunyu/fast)
+* [fast](https://github.com/f-ast/fast)
 * [GNU Parallel](https://www.gnu.org/software/parallel)
 
 Then perform the following commands to build the tool:
