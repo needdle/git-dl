@@ -758,10 +758,12 @@ bool is_del = 3;
 }
 repeated Element element = 6;
 repeated ModLine mod = 7;
+Slices slice = 8;
 }
 repeated Hunk hunk = 8;
 }
 repeated Diff diff = 6;
+Slices slice = 7;
 	}
 	message Author {
 	int32 id = 1;

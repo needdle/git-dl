@@ -6,7 +6,6 @@ LOADER    += catlog
 COMMANDS  += git-dl-log
 COMMANDS  += git-dl-pb
 COMMANDS  += git-dl-slice
-SCHEMA  += src/fast.proto
 target += src/gen/fast_pb2.py
 target += gitlog
 target += catlog
@@ -27,7 +26,6 @@ install: $(LOADER) $(COMMANDS)
 	install -d -m 0755 $(BIN_DIR) $(SHARE_DIR)
 	install -m 0755 $(LOADER) $(BIN_DIR)
 	install -m 0644 $(COMMANDS) $(BIN_DIR)
-	install -m 0644 $(SCHEMA) $(SHARE_DIR)
 
 uninstall:
 	test -d $(BIN_DIR) && \

@@ -35,7 +35,8 @@ int n_srcML_invoked = 0;
 /** 
  * convert text into a protobuf element
  */
-bool srcML(fast::Element *unit, std::string text, std::string ext) {
+bool srcML(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::string ext) {
+	fast::Element *unit = hunk->add_element();
 	char buf[100];
 	strcpy(buf, "/tmp/temp.XXXXXX");
 	int id = mkstemp(buf);
@@ -58,13 +59,16 @@ bool srcML(fast::Element *unit, std::string text, std::string ext) {
 	id = mkstemp(buf);
 	close(id);
 	remove(buf);
+	string slice_filename = buf; slice_filename += ".slice.pb";
+	string old_slice_filename = buf; old_slice_filename += ".old.slice.pb";
+	string new_slice_filename = buf; new_slice_filename += ".new.slice.pb";
 	strcat(buf, ".pb");
 	string pb_filename = buf;
 	char cmd[200];
 	FILE * src_file  = fopen(src_filename.c_str(), "r");
 	if (src_file != NULL) {
 		fclose(src_file);
-		sprintf(cmd, "fast %s %s", src_filename.c_str(), pb_filename.c_str());
+		sprintf(cmd, "fast -p %s %s", src_filename.c_str(), pb_filename.c_str());
 		n_srcML_invoked++;
 		int ret_val = system(cmd);
 		if (ret_val == 0) {
@@ -77,7 +81,37 @@ bool srcML(fast::Element *unit, std::string text, std::string ext) {
 				data->ParseFromIstream(&input);
 				unit->CopyFrom(data->element());
 				input.close();
+				sprintf(cmd, "fast -S %s %s", pb_filename.c_str(), slice_filename.c_str());
+				if (hunk->mutable_slice() == NULL) {
+					FILE * slice_file  = fopen(slice_filename.c_str(), "r");
+					if (slice_file != NULL) {
+						fclose(slice_file);
+						fstream input(slice_filename.c_str(), ios::in | ios::binary);
+						fast::Data *data = new fast::Data();
+						data->ParseFromIstream(&input);
+						hunk->mutable_slice()->CopyFrom(data->slices());
+					}
+				} else {
+					ofstream output(old_slice_filename.c_str(), ios::in | ios::binary);
+					fast::Data *old_data = new fast::Data();
+					old_data->mutable_slices()->CopyFrom(hunk->slice());
+					old_data->SerializeToOstream(&output);
+					output.close();
+					sprintf(cmd, "fast -L %s %s %s", 
+						old_slice_filename.c_str(), slice_filename.c_str(), new_slice_filename.c_str());
+					FILE * slice_file  = fopen(new_slice_filename.c_str(), "r");
+					if (slice_file != NULL) {
+						fclose(slice_file);
+						fstream input(slice_filename.c_str(), ios::in | ios::binary);
+						fast::Data *data = new fast::Data();
+						data->ParseFromIstream(&input);
+						hunk->mutable_slice()->CopyFrom(data->slices());
+					}
+					remove(old_slice_filename.c_str());
+					remove(new_slice_filename.c_str());
+				}
 				remove(pb_filename.c_str());
+				remove(slice_filename.c_str());
 			}
 		} else {
 			cerr << "Error found" << endl;
@@ -126,20 +160,12 @@ bool process_hunk_xml(fast::Log_Commit_Diff_Hunk *hunk, std::string text, std::s
 	    }
 	} while (linePos != std::string::npos);
 	if (text_old != "") {
-		fast::Element *unit = hunk->add_element();
-		bool success = srcML(unit, text_old, ext);
+		bool success = srcML(hunk, text_old, ext);
 		if (!success) return false;
-		// ignore the filename field
-		if (unit!=NULL)
-			unit->mutable_unit()->set_filename("");
 	}
 	if (text_new != "") {
-		fast::Element *unit = hunk->add_element();
-		bool success = srcML(unit, text_new, ext);
+		bool success = srcML(hunk, text_new, ext);
 		if (!success) return false;
-		// ignore the filename field
-		if (unit!=NULL)
-			unit->mutable_unit()->set_filename("");
 	}
 	return true;
 }
@@ -397,6 +423,12 @@ int main(int argc, char **argv) {
 	std::string commit_email;
 	std::string token;
 	bool parallel = false;
+	bool slicing = false;
+	if (strcmp(argv[1], "-S") == 0) {
+		slicing = true;
+		argc-- ;
+		argv++;
+	}
 	if (strcmp(argv[1], "-p") == 0) {
 		parallel = true;
 		argc-- ;
@@ -459,6 +491,7 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 	int job = 0;
+	std::string current_id = "";
         while(!input.eof()) {
 		std::getline(input, line);
 		if (strcmp(line.c_str(), SEPARATOR)==0) {
@@ -499,6 +532,30 @@ int main(int argc, char **argv) {
 				commit->mutable_committer()->set_committer_id(i);
 				commit->mutable_committer()->set_commit_date(commit_date);
 			}
+			if (slicing) {
+				std::string cmd = "fast -p -g " + commit_id + " . source.pb";
+				system(cmd.c_str());
+				cmd = "fast -S " + commit_id + "/source.pb " + commit_id + "/slice.pb";
+				system(cmd.c_str());
+				if (current_id == "") {
+					cmd = "cp " + commit_id + "/slice.pb " + commit_id + "/slice-diff.pb";
+				} else {
+					cmd = "fast -L " + current_id + "/slice.pb " + commit_id + "/slice.pb " + commit_id + "/slice-diff.pb";
+				}
+				system(cmd.c_str());
+				fast::Data *data = new fast::Data();
+				std::string pb_filename = commit_id + "/slice-diff.pb";
+				FILE * pb_file  = fopen(pb_filename.c_str(), "r");
+				if (pb_file != NULL) {
+					fclose(pb_file);
+					fstream input(pb_filename.c_str(), ios::in | ios::binary);
+					fast::Data *data = new fast::Data();
+					data->ParseFromIstream(&input);
+					commit->mutable_slice()->CopyFrom(data->slices());
+					input.close();
+				}
+			}
+			current_id = commit_id;
 			current_commit = commit;
 		} else {
 			diff += line;
