@@ -50,6 +50,7 @@ catlog: src/gen/fast.pb.cc src/catlog.cc
 
 clean:
 	rm -rf $(target) src/gen temp.* test/temp.* *.dSYM
+	find . -name slice.pb | while read f; do rm -rf $${f/slice.pb/}; done
 
 test::
 	cd test; test.sh; cat a.txt
