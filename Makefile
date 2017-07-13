@@ -6,23 +6,10 @@ LOADER    += catlog
 COMMANDS  += git-dl-log
 COMMANDS  += git-dl-pb
 COMMANDS  += git-dl-slice
-SCHEMA  += fast.proto
-target += fast.pb.cc
-target += fast.pb.h
+SCHEMA  += src/fast.proto
+target += src/gen/fast_pb2.py
 target += gitlog
 target += catlog
-target += fast.proto
-target += commit.proto
-target += author.proto
-target += diff.proto
-target += modline.proto
-target += hunk.proto
-target += ElementType.proto
-target += LanguageType.proto
-target += Literal.proto
-target += LiteralType.proto
-target += Unit.proto
-target += log.proto
 
 ifeq ($(UNAME_S),Darwin)
 PB_LIB=$(shell pkg-config --libs protobuf)
@@ -50,44 +37,31 @@ uninstall:
 %: src/%.in
 	cpp -I. -E -P $^ | grep -v "^0$$" > $@
 
-fast.pb.h fast.pb.cc: fast.proto
-	protoc --cpp_out=. $^
-
-src/Literal.proto.in: LiteralType.proto
-src/Unit.proto.in: LanguageType.proto
-src/commit.proto.in: diff.proto
-src/diff.proto.in: hunk.proto
-src/fast.proto.in: ElementType.proto
-src/fast.proto.in: Literal.proto
-src/fast.proto.in: Unit.proto
-src/fast.proto.in: log.proto
-src/log.proto.in: commit.proto
-src/log.proto.in: author.proto
-src/fast.proto.in: SmaliType.proto
-src/hunk.proto.in: modline.proto
+src/gen/fast.pb.h src/gen/fast.pb.cc: src/fast.proto
+	cd src && protoc --cpp_out=gen fast.proto
 
 CCFLAGS=-g
 CCFLAGS=-O3
 
-gitlog: fast.pb.cc src/gitlog.cc
-	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
+gitlog: src/gen/fast.pb.cc src/gitlog.cc
+	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@
 
-catlog: fast.pb.cc src/catlog.cc
-	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -DPB_fast $^ $(PB_LIB) -o $@
+catlog: src/gen/fast.pb.cc src/catlog.cc
+	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@
 
 clean:
-	rm -rf $(target) temp.* test/temp.* *.dSYM
+	rm -rf $(target) src/gen temp.* test/temp.* *.dSYM
 
 test::
 	cd test; test.sh; cat a.txt
 
-fast_pb2.py: fast.proto
-	protoc -I=. --python_out=. fast.proto
+src/gen/fast_pb2.py: src/fast.proto
+	cd src && protoc -I=. --python_out=gen fast.proto
 
 a.pb:
 	git dl pb a 1
 
-src/fold.py: fast_pb2.py
+src/fold.py: src/gen/fast_pb2.py
 
 load: src/fold.py a.pb
 	python $^

@@ -1,3 +1,0 @@
-__COUNTER__
-#include "LiteralType.proto"
-   	LiteralType type = __COUNTER__;

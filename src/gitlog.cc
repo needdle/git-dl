@@ -64,18 +64,18 @@ bool srcML(fast::Element *unit, std::string text, std::string ext) {
 	FILE * src_file  = fopen(src_filename.c_str(), "r");
 	if (src_file != NULL) {
 		fclose(src_file);
-		//sprintf(cmd, "lsof -p %d", getpid()); system(cmd);
 		sprintf(cmd, "fast %s %s", src_filename.c_str(), pb_filename.c_str());
 		n_srcML_invoked++;
 		int ret_val = system(cmd);
-		// cout << cmd << endl;
 		if (ret_val == 0) {
 			remove(src_filename.c_str());
 			FILE * pb_file  = fopen(pb_filename.c_str(), "r");
 			if (pb_file != NULL) {
 				fclose(pb_file);
 				fstream input(pb_filename.c_str(), ios::in | ios::binary);
-				unit->ParseFromIstream(&input);
+				fast::Data *data = new fast::Data();
+				data->ParseFromIstream(&input);
+				unit->CopyFrom(data->element());
 				input.close();
 				remove(pb_filename.c_str());
 			}
