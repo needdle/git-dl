@@ -38,6 +38,7 @@ uninstall:
 	cpp -I. -E -P $^ | grep -v "^0$$" > $@
 
 src/gen/fast.pb.h src/gen/fast.pb.cc: src/fast.proto
+	mkdir -p src/gen
 	cd src && protoc --cpp_out=gen fast.proto
 
 CCFLAGS=-g
@@ -56,6 +57,7 @@ test::
 	cd test; test.sh; cat a.txt
 
 src/gen/fast_pb2.py: src/fast.proto
+	mkdir -p src/gen
 	cd src && protoc -I=. --python_out=gen fast.proto
 
 a.pb:
