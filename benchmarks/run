@@ -1,0 +1,16 @@
+#!/bin/bash
+url="https://github.com/apache/tomcat"
+project=$(basename $url)
+folder=${url##https://github.com/}
+#echo $project
+#echo $folder
+if [ ! -f $project-commit.pb ]; then  
+	git clone $url $folder
+	cd $folder
+	echo -n > $project-commit.log
+	cat $project-commit.csv | while read h; do
+	   git dl log $h^..$h >> ../../$project-commit.log
+	done
+	git dl pb $project-commit.log ../../$project-commit 4
+	cd -
+fi
