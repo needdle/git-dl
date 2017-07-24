@@ -1,16 +1,26 @@
 #!/bin/bash
-url="https://github.com/apache/tomcat"
-project=$(basename $url)
-folder=${url##https://github.com/}
-#echo $project
-#echo $folder
-if [ ! -f $project-commit.pb ]; then  
-	git clone $url $folder
-	cd $folder
-	echo -n > $project-commit.log
-	cat $project-commit.csv | while read h; do
-	   git dl log $h^..$h >> ../../$project-commit.log
-	done
-	git dl pb $project-commit.log ../../$project-commit 4
-	cd -
-fi
+function log() {
+	url="$1"
+	project=$(basename $url)
+	folder=$project
+	if [ ! -f $project-commit.pb ]; then  
+		if [ ! -d $folder ]; then
+			git clone $url $folder
+		fi 
+		p=$(pwd)
+		cd $folder > /dev/null
+		echo -n > $project-commit.log
+		cat $p/$project-commit.csv | while read h; do
+		   git dl log $h^..$h >> $p/$project-commit.log
+		done
+		git dl pb $project-commit.log $p/$project-commit 4
+		cd - > /dev/null
+	fi
+}
+export -f log
+log https://github.com/apache/tomcat
+log https://git.eclipse.org/r/p/jdt/eclipse.jdt.ui
+log https://git.eclipse.org/gitroot/aspectj/org.aspectj
+log https://git.eclipse.org/r/p/platform/eclipse.platform.swt
+log https://github.com/eclipse/birt
+log https://git.eclipse.org/r/p/platform/eclipse.platform.ui
