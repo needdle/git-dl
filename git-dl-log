@@ -18,5 +18,5 @@ cmd_log() {
 }
 
 get_log() {
-    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd"
+    git log -p --pretty=format:"~~~~~~~~~~~~%n%H%n%s%n%an%n%ae%n%ad%n%cn%n%ce%n%cd" $@
 }

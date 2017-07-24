@@ -25,6 +25,17 @@ get_pb() {
 			fast -d $1
 			return
 		fi
+	elif [ "${1/\.\./}" != "$1" ]; then # has .. in the first argument
+		tag=$1
+		shift
+		git dl log $tag
+	elif [ "${1/.log/}" != "$1" ]; then # has .. in the first argument
+		log=$1
+		shift
+		cat $log | gitlog -p $1 $2
+		parallel --joblog /tmp/log --progress -j$2 --plus "cat {} | gitlog $3 {/.log/}" ::: $1-*.log
+		catlog $1-*.pb $1.pb
+		rm -f $1-*.log $1-*.pb
 	elif [ "$2" -lt 2 ]; then
 		## sequential
 		git dl log | gitlog $1
