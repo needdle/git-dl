@@ -1,5 +1,5 @@
-BIN_DIR   = /usr/local/bin
-SHARE_DIR   = /usr/local/share
+BIN_DIR   = /usr/bin
+SHARE_DIR   = /usr/share
 LOADER    += git-dl
 LOADER    += gitlog
 LOADER    += catlog
@@ -43,10 +43,10 @@ CCFLAGS=-g
 CCFLAGS=-O3
 
 gitlog: src/gen/fast.pb.cc src/gitlog.cc
-	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@
+	c++ $(CCFLAGS) -I. -I/usr/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@
 
 catlog: src/gen/fast.pb.cc src/catlog.cc
-	c++ $(CCFLAGS) -I. -I/usr/local/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@
+	c++ $(CCFLAGS) -I. -I/usr/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@
 
 clean:
 	rm -rf $(target) src/gen temp.* test/temp.* *.dSYM
