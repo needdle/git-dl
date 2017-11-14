@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 usage() {
     echo "Select historic logs for specific commit, or hunk"

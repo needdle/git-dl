@@ -15,8 +15,8 @@ PB_LIB=$(shell pkg-config --libs protobuf)
 SAX_LIB=osx/libsrcsax.a
 XML2_INCLUDE=-I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2
 else
-PB_LIB=/usr/local/lib/libprotobuf.a
-SAX_LIB=/usr/local/lib/libsrcsax.a
+PB_LIB=/usr/lib/libprotobuf.a
+SAX_LIB=/usr/lib/libsrcsax.a
 XML2_INCLUDE=-I/usr/include/libxml2
 endif
 
