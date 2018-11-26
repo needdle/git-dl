@@ -11,14 +11,11 @@ target += gitlog
 target += catlog
 UNAME_S=$(shell uname -s)
 
-ifeq ($(UNAME_S),Darwin)
 PB_LIB=$(shell pkg-config --libs protobuf)
-SAX_LIB=osx/libsrcsax.a
+ifeq ($(UNAME_S),Darwin)
 XML2_INCLUDE=-I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2
 BIN_DIR  = /usr/local/bin
 else
-PB_LIB=/usr/lib/libprotobuf.a
-SAX_LIB=/usr/lib/libsrcsax.a
 XML2_INCLUDE=-I/usr/include/libxml2
 endif
 
