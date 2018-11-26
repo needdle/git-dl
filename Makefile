@@ -9,6 +9,7 @@ COMMANDS  += git-dl-slice
 target += src/gen/fast_pb2.py
 target += gitlog
 target += catlog
+UNAME_S=$(shell uname -s)
 
 ifeq ($(UNAME_S),Darwin)
 PB_LIB=$(shell pkg-config --libs protobuf)
@@ -40,7 +41,7 @@ src/gen/fast.pb.h src/gen/fast.pb.cc: src/fast.proto
 	cd src && protoc --cpp_out=gen fast.proto
 
 CCFLAGS=-g
-CCFLAGS=-O3
+CCFLAGS=-O3 -Wno-invalid-offsetof
 
 gitlog: src/gen/fast.pb.cc src/gitlog.cc
 	c++ $(CCFLAGS) -I. -I/usr/include -Isrc -Isrc/gen -DPB_fast $^ $(PB_LIB) -o $@

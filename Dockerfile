@@ -1,8 +1,7 @@
 FROM yijun/fast
-RUN apk add -U --no-cache git make g++ protobuf-dev parallel
+RUN apk add -U --no-cache --force-broken-world git make g++ protobuf-dev parallel
 ADD . /git-dl
 RUN cd /git-dl \
  && make \
  && make install
-WORKDIR /git-dl
-CMD ["sh", "-c", "git dl $@"]
+ENTRYPOINT ["/usr/bin/git", "dl", "$@"]
