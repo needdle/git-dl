@@ -15,6 +15,7 @@ ifeq ($(UNAME_S),Darwin)
 PB_LIB=$(shell pkg-config --libs protobuf)
 SAX_LIB=osx/libsrcsax.a
 XML2_INCLUDE=-I/usr/local/Cellar/libxml2/2.9.4_2/include/libxml2
+BIN_DIR  = /usr/local/bin
 else
 PB_LIB=/usr/lib/libprotobuf.a
 SAX_LIB=/usr/lib/libsrcsax.a
